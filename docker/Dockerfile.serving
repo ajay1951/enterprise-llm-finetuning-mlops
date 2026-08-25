@@ -1,0 +1,28 @@
+# Dockerfile for ForgeLLM Inference Worker / Model Server
+
+FROM nvidia/cuda:12.1.1-devel-ubuntu22.04
+
+# Install Python and dependencies
+RUN apt-get update && apt-get install -y \
+    python3.10 \
+    python3-pip \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install Python packages
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+RUN pip3 install --no-cache-dir transformers peft accelerate bitsandbytes httpx
+
+# Copy source
+COPY . .
+
+# Environment
+ENV PYTHONPATH=/app
+ENV CUDA_VISIBLE_DEVICES=0
+
+# The Celery worker handles spinning up the model server dynamically on free ports.
+CMD ["celery", "-A", "workers.forgellm_worker.celery_app", "worker", "--loglevel=info", "--pool=solo", "-Q", "celery"]

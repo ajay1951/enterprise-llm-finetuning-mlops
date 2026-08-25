@@ -1,0 +1,11 @@
+{
+  "model_name": "customer-support",
+  "version": "v5",
+  "base_model": "Qwen/Qwen2.5-0.5B",
+  "method": "qlora",
+  "dataset": "customer-support:v1",
+  "experiment": "EXP-000005",
+  "created_at": "2026-08-21T18:04:30.380740Z",
+  "status": "failed",
+  "location": ".forgellm\\models\\customer-support\\v5"
+}

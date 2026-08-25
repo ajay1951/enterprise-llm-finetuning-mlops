@@ -1,0 +1,16 @@
+lora:
+  lora_alpha: 16
+  lora_dropout: 0.05
+  r: 8
+  target_modules:
+  - q_proj
+  - v_proj
+model: Qwen/Qwen2.5-0.5B
+quantization:
+  enabled: false
+training:
+  batch_size: 1
+  epochs: 1
+  gradient_accumulation_steps: 2
+  learning_rate: 1e-4
+  max_length: 256

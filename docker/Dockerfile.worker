@@ -1,0 +1,25 @@
+FROM nvidia/cuda:12.1.1-devel-ubuntu22.04
+
+# Install Python and dependencies
+RUN apt-get update && apt-get install -y \
+    python3.10 \
+    python3-pip \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# The worker agent needs specific telemetry and HTTP client libraries
+RUN pip3 install --no-cache-dir httpx psutil nvidia-ml-py3 pydantic boto3
+
+# Copy agent code
+COPY workers/forgellm_agent /app/forgellm_agent
+
+# Environment configuration
+ENV FORGELLM_API_URL="http://forgellm-api:8000"
+ENV FORGELLM_WORKER_TOKEN="default-insecure-worker-token"
+ENV FORGELLM_WORKER_TYPE="hybrid"
+ENV PYTHONUNBUFFERED=1
+
+# Run the agent
+CMD ["python3", "/app/forgellm_agent/agent.py"]

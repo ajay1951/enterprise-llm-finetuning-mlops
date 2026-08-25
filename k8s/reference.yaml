@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: forgellm
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: forgellm-api
+  namespace: forgellm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: forgellm-api
+  template:
+    metadata:
+      labels:
+        app: forgellm-api
+    spec:
+      containers:
+      - name: api
+        image: forgellm-api:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: forgellm-secrets
+              key: database-url
+        - name: REDIS_URL
+          value: "redis://forgellm-redis:6379"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: forgellm-api
+  namespace: forgellm
+spec:
+  selector:
+    app: forgellm-api
+  ports:
+  - port: 80
+    targetPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: forgellm-worker
+  namespace: forgellm
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: forgellm-worker
+  template:
+    metadata:
+      labels:
+        app: forgellm-worker
+    spec:
+      containers:
+      - name: worker
+        image: forgellm-worker:latest
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+        env:
+        - name: FORGELLM_API_URL
+          value: "http://forgellm-api.forgellm.svc.cluster.local"
+        - name: WORKER_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: forgellm-secrets
+              key: worker-token

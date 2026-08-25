@@ -1,0 +1,18 @@
+{
+  "experiment_id": "EXP-000003",
+  "model": "Qwen/Qwen2.5-0.5B",
+  "dataset": "customer-support",
+  "dataset_version": "v1",
+  "method": "qlora",
+  "status": "failed",
+  "created_at": "2026-08-21T17:57:45.498970Z",
+  "duration_seconds": null,
+  "git_commit": "unknown",
+  "python_version": "2.5.1+cu121",
+  "torch_version": "2.5.1+cu121",
+  "transformers_version": "5.15.1",
+  "trl_version": "1.10.0",
+  "peft_version": "0.20.0",
+  "cuda_version": "12.1",
+  "gpu": "NVIDIA GeForce RTX 2050"
+}
