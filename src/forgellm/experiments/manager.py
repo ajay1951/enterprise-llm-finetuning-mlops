@@ -1,15 +1,13 @@
-import json
-from typing import Optional, Dict, Any
-from forgellm.experiments.metadata import ExperimentMetadata
-from forgellm.experiments.storage import StorageInterface, LocalFileStorage
-from forgellm.hardware.detector import HardwareDetector
-from forgellm.dataset.registry import DatasetRegistry
 import subprocess
-from datetime import datetime
-import time
+
+from forgellm.dataset.registry import DatasetRegistry
+from forgellm.experiments.metadata import ExperimentMetadata
+from forgellm.experiments.storage import LocalFileStorage, StorageInterface
+from forgellm.hardware.detector import HardwareDetector
+
 
 class ExperimentManager:
-    def __init__(self, storage: Optional[StorageInterface] = None):
+    def __init__(self, storage: StorageInterface | None = None):
         self.storage = storage or LocalFileStorage()
         self.dataset_registry = DatasetRegistry()
         

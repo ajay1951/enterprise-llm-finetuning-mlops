@@ -59,8 +59,6 @@ async def chat_completions(
         raise
 
     fallback_version_id = get_fallback_version(db, project_id, requested_model)
-    
-    client_adapter = get_model_client(is_mock=True) # Using mock for now as per requirements for local test
 
     async def execute_inference(version_id: str):
         # 2. Replica Selection (LEAST_LOADED)
@@ -69,18 +67,47 @@ async def chat_completions(
             raise HTTPException(status_code=503, detail="MODEL_UNAVAILABLE: No healthy replicas available")
             
         replica = select_replica(deployments, strategy="LEAST_LOADED", redis_client=redis_client)
-        endpoint = replica.endpoint or "http://localhost:8080"
+        # Assuming replica.endpoint points to the vLLM container, e.g. "http://vllm_service:8080"
+        # For local testing, we fallback to our dedicated inference service port
+        endpoint = replica.endpoint or "http://vllm_service:8080"
         
         # 3. Inference execution
         start_time = time.time()
         metrics_buffer.record_request_start(replica.id)
         
+        import httpx
+        
         try:
             headers = {"X-Request-Id": request_id}
-            if stream:
-                return await client_adapter.stream_chat_completion(endpoint, body, headers), replica
-            else:
-                return await client_adapter.chat_completion(endpoint, body, headers), replica
+            
+            async with httpx.AsyncClient() as client:
+                req_kwargs = {
+                    "method": "POST",
+                    "url": f"{endpoint}/v1/chat/completions",
+                    "json": body,
+                    "headers": headers,
+                    "timeout": 30.0
+                }
+                
+                if stream:
+                    # Return an async generator that yields chunks from the httpx stream
+                    async def stream_generator():
+                        async with client.stream(**req_kwargs) as response:
+                            if response.status_code != 200:
+                                yield f"data: {{\"error\": \"Inference failed with status {response.status_code}\"}}\n\n"
+                                return
+                            async for chunk in response.aiter_text():
+                                yield chunk
+                                
+                    return stream_generator(), replica
+                else:
+                    response = await client.request(**req_kwargs)
+                    response.raise_for_status()
+                    return response.json(), replica
+                    
+        except httpx.RequestError as exc:
+            logger.error(f"[{request_id}] Request to vLLM failed: {exc}")
+            raise HTTPException(status_code=502, detail="Bad Gateway: vLLM service unreachable")
         finally:
             metrics_buffer.record_request_end(replica.id)
             latency_ms = int((time.time() - start_time) * 1000)

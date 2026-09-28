@@ -1,6 +1,9 @@
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
+
 from backend.forgellm_api.services.scheduler_service import ResourceScheduler
+
 
 @pytest.mark.asyncio
 async def test_scheduler_best_fit():

@@ -1,5 +1,6 @@
 from datasets import Dataset
 
+
 class DatasetFormatter:
     def __init__(self, format_type: str = "messages"):
         self.format_type = format_type

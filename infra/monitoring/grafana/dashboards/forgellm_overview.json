@@ -1,0 +1,53 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "title": "API Request Throughput (RPS)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(http_requests_total[1m])",
+          "legendFormat": "{{method}} {{path}}"
+        }
+      ]
+    },
+    {
+      "title": "GPU Memory Utilization (MB)",
+      "type": "gauge",
+      "targets": [
+        {
+          "expr": "forgellm_gpu_memory_bytes / 1024 / 1024",
+          "legendFormat": "GPU {{gpu_id}}"
+        }
+      ]
+    },
+    {
+      "title": "Training Loss Progression",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "forgellm_training_loss",
+          "legendFormat": "Job {{job_id}}"
+        }
+      ]
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["forgellm", "ai-infrastructure"],
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "title": "ForgeLLM - Enterprise AI Infrastructure Control Plane",
+  "uid": "forgellm-overview"
+}

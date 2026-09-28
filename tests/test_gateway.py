@@ -1,11 +1,13 @@
+from unittest.mock import MagicMock
+
+import httpx
 import pytest
-import asyncio
-from unittest.mock import patch, MagicMock
 from fastapi import HTTPException
+
 from backend.forgellm_api.core.gateway.retry import with_retry_and_fallback
 from backend.forgellm_api.core.gateway.router import select_replica
 from backend.forgellm_api.db.models.deployment import Deployment
-import httpx
+
 
 @pytest.mark.asyncio
 async def test_retry_success_after_failure():

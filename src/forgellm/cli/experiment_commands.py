@@ -2,6 +2,7 @@ import typer
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
+
 from forgellm.experiments.manager import ExperimentManager
 
 app = typer.Typer(help="Experiment tracking and comparison commands.")
@@ -43,7 +44,7 @@ def show(experiment_id: str):
         raise typer.Exit(code=1)
         
     output = [
-        f"[bold cyan]ForgeLLM Experiment[/bold cyan]\n",
+        "[bold cyan]ForgeLLM Experiment[/bold cyan]\n",
         f"[bold]{exp.experiment_id}[/bold]",
         "────────────────────────────\n",
         f"[bold]Model:[/bold]          {exp.model}",

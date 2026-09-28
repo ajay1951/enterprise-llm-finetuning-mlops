@@ -31,8 +31,14 @@ class ModelVersion(Base):
     adapter_path = Column(String, nullable=False)
     artifact_uri = Column(String, nullable=True)
     tokenizer_uri = Column(String, nullable=True)
+    
+    # MLflow and Lineage
+    training_run_id = Column(String, nullable=True)
+    git_commit = Column(String, nullable=True)
+    quality_score = Column(String, nullable=True) # JSON representing quality gate
+    
     status = Column(String, default="ready") # ready, evaluating, failed
-    lifecycle_status = Column(String, default="TRAINING") # TRAINING, EVALUATING, READY, STAGED, PRODUCTION, DEPRECATED, ARCHIVED
+    lifecycle_status = Column(String, default="development") # development, staging, production, archived, rejected
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -40,6 +46,22 @@ class ModelVersion(Base):
     experiment = relationship("Experiment", back_populates="model_version", foreign_keys=[experiment_id])
     evaluations = relationship("Evaluation", back_populates="model_version", cascade="all, delete-orphan")
     deployments = relationship("Deployment", back_populates="model_version", cascade="all, delete-orphan")
+    promotions = relationship("ModelPromotionHistory", back_populates="model_version", cascade="all, delete-orphan")
+
+class ModelPromotionHistory(Base):
+    __tablename__ = "model_promotion_history"
+    
+    id = Column(String, primary_key=True, default=generate_uuid)
+    model_version_id = Column(String, ForeignKey("model_versions.id"), nullable=False, index=True)
+    
+    previous_status = Column(String, nullable=False)
+    new_status = Column(String, nullable=False)
+    actor = Column(String, nullable=True)
+    reason = Column(Text, nullable=True)
+    
+    timestamp = Column(DateTime(timezone=True), server_default=func.now())
+    
+    model_version = relationship("ModelVersion", back_populates="promotions")
 
 
 class ModelAlias(Base):

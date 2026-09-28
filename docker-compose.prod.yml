@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  api:
+    image: ${ECR_REGISTRY}/forgellm-api:${GIT_SHA}
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=redis://redis:6379/0
+      - USE_LOCAL_S3=false
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    depends_on:
+      - redis
+      - vllm_service
+    restart: always
+    
+  vllm_service:
+    image: ${ECR_REGISTRY}/forgellm-inference:${GIT_SHA}
+    ports:
+      - "8080:8080"
+    environment:
+      - CPU_MODE=true
+      - MODEL_NAME=TinyLlama/TinyLlama-1.1B-Chat-v1.0
+    restart: always
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infra/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    restart: always
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./infra/monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: always
+
+  celery_worker:
+    image: ${ECR_REGISTRY}/forgellm-celery:${GIT_SHA}
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=redis://redis:6379/0
+      - USE_LOCAL_S3=false
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    depends_on:
+      - redis
+    restart: always
+
+  frontend:
+    image: ${ECR_REGISTRY}/forgellm-frontend:${GIT_SHA}
+    ports:
+      - "80:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=${API_URL:-http://localhost:8000}
+    restart: always
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.10.2
+    ports:
+      - "5000:5000"
+    command: >
+      mlflow server
+      --backend-store-uri ${DATABASE_URL}
+      --default-artifact-root s3://${S3_BUCKET_NAME}/mlflow/
+      --host 0.0.0.0
+    environment:
+      - AWS_DEFAULT_REGION=${AWS_REGION}
+    restart: always
+
+volumes:
+  redis_data:

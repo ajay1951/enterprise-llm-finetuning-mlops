@@ -1,14 +1,14 @@
-import typer
 import os
-from typing import Optional
+
+import typer
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from forgellm.dataset.registry import DatasetRegistry
-from forgellm.dataset.validator import DatasetValidator
 from forgellm.dataset.cleaner import DatasetCleaner
+from forgellm.dataset.registry import DatasetRegistry
 from forgellm.dataset.splitter import DatasetSplitter
+from forgellm.dataset.validator import DatasetValidator
 
 app = typer.Typer(help="Dataset management and preparation commands.")
 console = Console()

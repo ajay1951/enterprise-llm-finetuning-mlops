@@ -1,6 +1,7 @@
-import pytest
 from datasets import Dataset
+
 from forgellm.dataset.splitter import DatasetSplitter
+
 
 def test_splitter():
     # Create dummy dataset

@@ -1,7 +1,8 @@
 import json
-from typing import Optional, Dict, Any, List
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+from typing import Any
+
 
 class ModelRegistry:
     def __init__(self, base_dir: str = ".forgellm/models"):
@@ -29,7 +30,7 @@ class ModelRegistry:
                  method: str,
                  dataset_ref: str,
                  experiment_id: str,
-                 status: str = "training") -> Dict[str, Any]:
+                 status: str = "training") -> dict[str, Any]:
                  
         version = self._get_next_version(model_name)
         version_dir = self.base_dir / model_name / version
@@ -61,19 +62,19 @@ class ModelRegistry:
             with open(meta_path, "w") as f:
                 json.dump(metadata, f, indent=2)
                 
-    def get_model(self, model_name: str, version: str) -> Optional[Dict[str, Any]]:
+    def get_model(self, model_name: str, version: str) -> dict[str, Any] | None:
         meta_path = self.base_dir / model_name / version / "metadata.json"
         if not meta_path.exists():
             return None
         with open(meta_path, "r") as f:
             return json.load(f)
             
-    def list_models(self) -> List[str]:
+    def list_models(self) -> list[str]:
         if not self.base_dir.exists():
             return []
         return [d.name for d in self.base_dir.iterdir() if d.is_dir()]
         
-    def list_versions(self, model_name: str) -> List[Dict[str, Any]]:
+    def list_versions(self, model_name: str) -> list[dict[str, Any]]:
         model_dir = self.base_dir / model_name
         if not model_dir.exists():
             return []

@@ -1,9 +1,9 @@
-import os
 import json
 from abc import ABC, abstractmethod
-from typing import List, Optional
 from pathlib import Path
+
 from forgellm.experiments.metadata import ExperimentMetadata
+
 
 class StorageInterface(ABC):
     @abstractmethod
@@ -11,11 +11,11 @@ class StorageInterface(ABC):
         pass
         
     @abstractmethod
-    def get_experiment(self, experiment_id: str) -> Optional[ExperimentMetadata]:
+    def get_experiment(self, experiment_id: str) -> ExperimentMetadata | None:
         pass
         
     @abstractmethod
-    def list_experiments(self) -> List[ExperimentMetadata]:
+    def list_experiments(self) -> list[ExperimentMetadata]:
         pass
 
 class LocalFileStorage(StorageInterface):
@@ -33,7 +33,7 @@ class LocalFileStorage(StorageInterface):
         with open(exp_dir / "metadata.json", "w") as f:
             json.dump(metadata.to_dict(), f, indent=2)
             
-    def get_experiment(self, experiment_id: str) -> Optional[ExperimentMetadata]:
+    def get_experiment(self, experiment_id: str) -> ExperimentMetadata | None:
         meta_path = self.base_dir / experiment_id / "metadata.json"
         if not meta_path.exists():
             return None
@@ -41,7 +41,7 @@ class LocalFileStorage(StorageInterface):
             data = json.load(f)
             return ExperimentMetadata.from_dict(data)
             
-    def list_experiments(self) -> List[ExperimentMetadata]:
+    def list_experiments(self) -> list[ExperimentMetadata]:
         if not self.base_dir.exists():
             return []
             

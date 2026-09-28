@@ -1,0 +1,6 @@
+apiVersion: v2
+name: forgellm
+description: Enterprise AI Control Plane & LLM Fine-Tuning Infrastructure Helm Chart
+type: application
+version: 0.1.0
+appVersion: "9.0.0"

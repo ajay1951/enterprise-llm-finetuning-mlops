@@ -1,6 +1,13 @@
-import torch
 import warnings
-from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedModel, PreTrainedTokenizer
+
+import torch
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    PreTrainedModel,
+    PreTrainedTokenizer,
+)
+
 
 class ModelLoader:
     def __init__(self, model_name: str, trust_remote_code: bool = True):
@@ -20,10 +27,10 @@ class ModelLoader:
         
         if self.cuda_available:
             self.device = "cuda"
-            print(f"Device: CUDA")
+            print("Device: CUDA")
             print(f"GPU: {torch.cuda.get_device_name(0)}")
         else:
-            print(f"Device: CPU")
+            print("Device: CPU")
             warnings.warn("CUDA is not available. Training will be extremely slow.")
 
     def load_tokenizer(self) -> PreTrainedTokenizer:

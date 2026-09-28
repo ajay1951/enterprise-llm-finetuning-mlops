@@ -26,6 +26,11 @@ class DatasetVersion(Base):
     status = Column(String, default="pending") # pending, valid, invalid, formatted
     num_examples = Column(Integer, default=0)
     file_hash = Column(String, nullable=True)
+    
+    # Lineage and Versioning
+    s3_uri = Column(String, nullable=True)
+    commit_hash = Column(String, nullable=True)
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     dataset = relationship("Dataset", back_populates="versions")

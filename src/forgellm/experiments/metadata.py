@@ -1,6 +1,7 @@
-from dataclasses import dataclass, field, asdict
-from typing import Optional, Dict, Any
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
+from typing import Any
+
 
 @dataclass
 class ExperimentMetadata:
@@ -11,7 +12,7 @@ class ExperimentMetadata:
     method: str
     status: str
     created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
-    duration_seconds: Optional[float] = None
+    duration_seconds: float | None = None
     git_commit: str = "unknown"
     python_version: str = "unknown"
     torch_version: str = "unknown"
@@ -21,9 +22,9 @@ class ExperimentMetadata:
     cuda_version: str = "unknown"
     gpu: str = "unknown"
     
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
         
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "ExperimentMetadata":
+    def from_dict(cls, data: dict[str, Any]) -> "ExperimentMetadata":
         return cls(**data)

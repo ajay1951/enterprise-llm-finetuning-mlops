@@ -1,7 +1,9 @@
 import platform
+from dataclasses import dataclass
+
 import psutil
 import torch
-from dataclasses import dataclass
+
 
 @dataclass
 class HardwareProfile:

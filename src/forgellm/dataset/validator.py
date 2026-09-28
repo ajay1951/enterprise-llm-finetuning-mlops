@@ -1,9 +1,10 @@
 import json
 import os
-from typing import Dict, Any, List
+from typing import Any
+
 
 class ValidationResult:
-    def __init__(self, total: int, valid: int, invalid: int, duplicates: int, errors: List[str]):
+    def __init__(self, total: int, valid: int, invalid: int, duplicates: int, errors: list[str]):
         self.total = total
         self.valid = valid
         self.invalid = invalid
@@ -72,7 +73,7 @@ class DatasetValidator:
 
         return ValidationResult(total, valid, invalid, duplicates, errors)
 
-    def _validate_record(self, record: Any, line_idx: int, errors: List[str]) -> bool:
+    def _validate_record(self, record: Any, line_idx: int, errors: list[str]) -> bool:
         if not isinstance(record, dict):
             errors.append(f"Line {line_idx}: Record is not a JSON object")
             return False

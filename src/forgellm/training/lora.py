@@ -1,5 +1,7 @@
 from peft import LoraConfig as PeftLoraConfig
+
 from forgellm.training.config import LoraConfig
+
 
 def get_lora_config(config: LoraConfig) -> PeftLoraConfig:
     print("\nLoRA Configuration")

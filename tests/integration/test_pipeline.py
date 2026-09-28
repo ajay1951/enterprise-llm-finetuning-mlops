@@ -1,12 +1,11 @@
+
 import pytest
 from fastapi.testclient import TestClient
-import io
-import time
 
-from backend.forgellm_api.main import app
-from backend.forgellm_api.db.session import Base, engine, SessionLocal
-from backend.forgellm_api.db.models import * # Ensure all models are loaded
+from backend.forgellm_api.db.models import *  # Ensure all models are loaded
 from backend.forgellm_api.db.models.training import TrainingJob
+from backend.forgellm_api.db.session import Base, SessionLocal, engine
+from backend.forgellm_api.main import app
 
 client = TestClient(app)
 

@@ -1,6 +1,7 @@
 import torch
 from transformers import PreTrainedModel, PreTrainedTokenizer
 
+
 class ForgeGenerator:
     def __init__(self, model: PreTrainedModel, tokenizer: PreTrainedTokenizer):
         self.model = model

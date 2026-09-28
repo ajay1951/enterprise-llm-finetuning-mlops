@@ -1,13 +1,12 @@
-import typer
 import os
-from typing import Optional
+
+import typer
+from peft import PeftModel
 from rich.console import Console
 
-from forgellm.models.registry import ModelRegistry
-from forgellm.models.loader import ModelLoader
 from forgellm.inference.generator import ForgeGenerator
-from forgellm.training.quantization import get_quantization_config
-from peft import PeftModel
+from forgellm.models.loader import ModelLoader
+from forgellm.models.registry import ModelRegistry
 
 console = Console()
 registry = ModelRegistry()
@@ -34,7 +33,7 @@ def run_chat(
         
     adapter_path = os.path.join(info["location"], "adapter")
     
-    console.print(f"[bold cyan]ForgeLLM Chat[/bold cyan]")
+    console.print("[bold cyan]ForgeLLM Chat[/bold cyan]")
     console.print(f"Model: {model_ref}\n")
     console.print("[yellow]Loading model... (this may take a few seconds)[/yellow]")
     

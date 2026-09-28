@@ -1,12 +1,13 @@
 from fastapi import FastAPI
 import asyncio
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_client import make_asgi_app
 import logging
 
 from backend.forgellm_api.api.v1 import (
     health, projects, datasets, training, ws, workers, deployments, 
     inference, storage, workloads, auth, organizations, api_keys, 
-    audit_logs, gateway, experiments, models_lifecycle, benchmarks
+    audit_logs, gateway, experiments, models_lifecycle, benchmarks, telemetry
 )
 
 # Setup logging
@@ -35,14 +36,29 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS
+# Prometheus metrics
+metrics_app = make_asgi_app()
+app.mount("/metrics", metrics_app)
+
+from backend.forgellm_api.core.config import get_settings
+settings = get_settings()
+
+# CORS Configuration
+allow_origins = settings.CORS_ORIGINS if settings.ENVIRONMENT != "development" else ["*"]
+allow_credentials = False if allow_origins == ["*"] else True
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=allow_origins,
+    allow_credentials=allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Root Health probe for Docker/Kubernetes
+@app.get("/health", tags=["Health"])
+def root_health():
+    return {"status": "ok", "service": "ForgeLLM API"}
 
 # Routers
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
@@ -63,3 +79,5 @@ app.include_router(gateway.router)
 app.include_router(experiments.router)
 app.include_router(models_lifecycle.router)
 app.include_router(benchmarks.router)
+app.include_router(telemetry.router)
+

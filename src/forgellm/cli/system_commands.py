@@ -1,7 +1,8 @@
 import typer
-from forgellm.hardware.detector import HardwareDetector
 from rich.console import Console
 from rich.panel import Panel
+
+from forgellm.hardware.detector import HardwareDetector
 
 app = typer.Typer(help="Hardware detection and profiling commands.")
 console = Console()

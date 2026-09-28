@@ -1,5 +1,7 @@
 import torch
+
 from forgellm.training.config import QuantizationConfig
+
 
 def get_quantization_config(config: QuantizationConfig):
     if not config.enabled:

@@ -1,5 +1,5 @@
+
 import typer
-from typing import Optional
 
 # Will import command groups as they are built
 # from forgellm.cli import dataset_commands
@@ -8,14 +8,15 @@ from typing import Optional
 # from forgellm.cli import model_commands
 # from forgellm.cli import system_commands
 # from forgellm.cli import chat_commands
-
-from forgellm.cli import system_commands
-from forgellm.cli import dataset_commands
-from forgellm.cli import experiment_commands
-from forgellm.cli import training_commands
-from forgellm.cli import model_commands
-from forgellm.cli import chat_commands
-from forgellm.cli import evaluation_commands
+from forgellm.cli import (
+    chat_commands,
+    dataset_commands,
+    evaluation_commands,
+    experiment_commands,
+    model_commands,
+    system_commands,
+    training_commands,
+)
 
 app = typer.Typer(
     name="forge",

@@ -1,16 +1,15 @@
-import typer
-import os
-import yaml
-import time
 import json
-from typing import Optional
-from rich.console import Console
+import os
+import time
 from pathlib import Path
 
+import typer
+import yaml
+from rich.console import Console
+
+from forgellm.dataset.registry import DatasetRegistry
 from forgellm.experiments.manager import ExperimentManager
 from forgellm.models.registry import ModelRegistry
-from forgellm.dataset.registry import DatasetRegistry
-from forgellm.training.config import load_config
 from forgellm.training.trainer import ForgeTrainer
 
 app = typer.Typer(help="Model training commands.")
@@ -19,23 +18,34 @@ exp_manager = ExperimentManager()
 model_registry = ModelRegistry()
 dataset_registry = DatasetRegistry()
 
-def resolve_config(config_path: Optional[str], preset: Optional[str], overrides: dict) -> dict:
+import collections.abc
+
+
+def deep_update(d, u):
+    for k, v in u.items():
+        if isinstance(v, collections.abc.Mapping):
+            d[k] = deep_update(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
+
+def resolve_config(config_path: str | None, preset: str | None, overrides: dict) -> dict:
     config = {}
     
     # 1. Defaults
     config = {
-        "model": "Qwen/Qwen2.5-0.5B",
+        "model": {"name": "Qwen/Qwen2.5-0.5B"},
         "quantization": {"enabled": False},
-        "lora": {"r": 8, "lora_alpha": 16, "lora_dropout": 0.05, "target_modules": ["q_proj", "v_proj"]},
-        "training": {"batch_size": 1, "gradient_accumulation_steps": 1, "epochs": 1, "learning_rate": 2e-4, "max_length": 256}
+        "lora": {"r": 8, "alpha": 16, "dropout": 0.05, "target_modules": ["q_proj", "v_proj"]},
+        "dataset": {"max_seq_length": 256},
+        "training": {"per_device_train_batch_size": 1, "gradient_accumulation_steps": 1, "num_train_epochs": 1, "learning_rate": 2e-4}
     }
     
     # 2. User YAML config
     if config_path and os.path.exists(config_path):
         with open(config_path, "r") as f:
             user_config = yaml.safe_load(f)
-            # Deep update logic omitted for brevity, basic update
-            config.update(user_config)
+            deep_update(config, user_config)
             
     # 3. Preset
     if preset:
@@ -43,29 +53,32 @@ def resolve_config(config_path: Optional[str], preset: Optional[str], overrides:
         if os.path.exists(preset_path):
             with open(preset_path, "r") as f:
                 preset_config = yaml.safe_load(f)
-                config.update(preset_config)
+                deep_update(config, preset_config)
                 
     # 4. CLI overrides
     for k, v in overrides.items():
         if v is not None:
-            # Very basic override logic
-            if k in ["epochs", "learning_rate", "batch_size"]:
-                config["training"][k] = v
+            if k == "epochs":
+                config["training"]["num_train_epochs"] = v
+            elif k == "learning_rate":
+                config["training"]["learning_rate"] = v
+            elif k == "batch_size":
+                config["training"]["per_device_train_batch_size"] = v
             elif k == "model":
-                config["model"] = v
+                config["model"]["name"] = v
                 
     return config
 
 @app.command(name="train") # renamed function to avoid collision with app.command()
 def run_train(
-    model: Optional[str] = typer.Option(None, help="Base model ID"),
+    model: str | None = typer.Option(None, help="Base model ID"),
     dataset: str = typer.Option(..., help="Dataset reference (e.g., customer-support:v1)"),
     method: str = typer.Option("qlora", help="Training method"),
-    config: Optional[str] = typer.Option(None, help="Path to config YAML"),
-    preset: Optional[str] = typer.Option(None, help="Configuration preset"),
-    epochs: Optional[int] = typer.Option(None, help="Override epochs"),
-    learning_rate: Optional[float] = typer.Option(None, help="Override learning rate"),
-    batch_size: Optional[int] = typer.Option(None, help="Override batch size")
+    config: str | None = typer.Option(None, help="Path to config YAML"),
+    preset: str | None = typer.Option(None, help="Configuration preset"),
+    epochs: int | None = typer.Option(None, help="Override epochs"),
+    learning_rate: float | None = typer.Option(None, help="Override learning rate"),
+    batch_size: int | None = typer.Option(None, help="Override batch size")
 ):
     """Run model fine-tuning."""
     # Resolve dataset
@@ -85,7 +98,7 @@ def run_train(
     
     # Create Experiment
     exp = exp_manager.create_experiment(
-        model=final_config["model"],
+        model=final_config["model"]["name"],
         dataset=dataset_name,
         dataset_version=dataset_version,
         method=method
@@ -97,7 +110,7 @@ def run_train(
     # Register model in "training" status
     model_meta = model_registry.register(
         model_name=dataset_name, # Usually model inherits dataset name for domain-specific FT
-        base_model=final_config["model"],
+        base_model=final_config["model"]["name"],
         method=method,
         dataset_ref=f"{dataset_name}:{dataset_version}",
         experiment_id=exp.experiment_id,
@@ -135,5 +148,5 @@ def run_train(
     except Exception as e:
         exp_manager.mark_failed(exp.experiment_id)
         model_registry.update_status(model_meta["model_name"], model_meta["version"], "failed")
-        console.print(f"[bold red]Training failed: {str(e)}[/bold red]")
+        console.print(f"[bold red]Training failed: {e!s}[/bold red]")
         raise typer.Exit(code=1)

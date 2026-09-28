@@ -1,10 +1,11 @@
-import os
-import json
 import hashlib
+import json
+import os
 import shutil
 from datetime import datetime
-from typing import Dict, Any, List, Optional
 from pathlib import Path
+from typing import Any
+
 
 class DatasetRegistry:
     def __init__(self, base_dir: str = ".forgellm/datasets"):
@@ -34,19 +35,19 @@ class DatasetRegistry:
             
         return f"v{max(v_nums) + 1}"
         
-    def get_version_info(self, dataset_name: str, version: str) -> Optional[Dict[str, Any]]:
+    def get_version_info(self, dataset_name: str, version: str) -> dict[str, Any] | None:
         metadata_path = self.base_dir / dataset_name / version / "metadata.json"
         if not metadata_path.exists():
             return None
         with open(metadata_path, "r") as f:
             return json.load(f)
             
-    def list_datasets(self) -> List[str]:
+    def list_datasets(self) -> list[str]:
         if not self.base_dir.exists():
             return []
         return [d.name for d in self.base_dir.iterdir() if d.is_dir()]
         
-    def list_versions(self, dataset_name: str) -> List[Dict[str, Any]]:
+    def list_versions(self, dataset_name: str) -> list[dict[str, Any]]:
         dataset_dir = self.base_dir / dataset_name
         if not dataset_dir.exists():
             return []
@@ -70,7 +71,7 @@ class DatasetRegistry:
                  total_examples: int,
                  training_examples: int,
                  validation_examples: int,
-                 seed: int) -> Dict[str, Any]:
+                 seed: int) -> dict[str, Any]:
                  
         sha256 = self._calculate_sha256(source_path)
         

@@ -1,21 +1,30 @@
 model:
   name: "Qwen/Qwen2.5-0.5B"
+  model_version: "v1.0.0"
+  tokenizer_name: null
   trust_remote_code: true
 
 dataset:
   train_file: "data/raw/train.jsonl"
+  val_file: null
+  version: "v2-cleaned"
   validation_split: 0.1
+  test_split: 0.05
   seed: 42
   max_seq_length: 2048
 
 training:
-  output_dir: "outputs"
-  num_train_epochs: 1
-  per_device_train_batch_size: 1
-  per_device_eval_batch_size: 1
-  gradient_accumulation_steps: 8
+  experiment_name: "ForgeLLM_FineTuning_Qwen"
+  mlflow_tracking_uri: "http://localhost:5000"
+  output_dir: "outputs/qwen2.5-0.5b-finetuned"
+  num_train_epochs: 3
+  per_device_train_batch_size: 4
+  per_device_eval_batch_size: 4
+  gradient_accumulation_steps: 4
   learning_rate: 0.0002
+  weight_decay: 0.01
   warmup_ratio: 0.03
+  lr_scheduler_type: "cosine"
   logging_steps: 10
   save_steps: 100
   eval_steps: 100
@@ -25,6 +34,7 @@ lora:
   r: 16
   alpha: 32
   dropout: 0.05
+  target_modules: ["q_proj", "k_proj", "v_proj", "o_proj"]
 
 quantization:
   enabled: true

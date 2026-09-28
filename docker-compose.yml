@@ -38,8 +38,12 @@ services:
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:8000
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
+      api:
+        condition: service_healthy
 
   minio:
     image: minio/minio:latest
@@ -57,6 +61,38 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://forgellm:password123@postgres:5432/forgellm
+      - REDIS_URL=redis://redis:6379/0
+      - USE_LOCAL_S3=true
+      - S3_ENDPOINT_URL=http://minio:9000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.celery
+    environment:
+      - DATABASE_URL=postgresql://forgellm:password123@postgres:5432/forgellm
+      - REDIS_URL=redis://redis:6379/0
+      - USE_LOCAL_S3=true
+      - S3_ENDPOINT_URL=http://minio:9000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
 volumes:
   postgres_data:

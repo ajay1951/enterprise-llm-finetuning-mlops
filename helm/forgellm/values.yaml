@@ -1,46 +1,33 @@
-# Default values for forgellm.
+replicaCount: 2
 
-global:
-  environment: production
-  
-api:
-  replicaCount: 2
-  image:
-    repository: forgellm-api
-    tag: "latest"
-  resources:
-    limits:
-      cpu: 2
-      memory: 4Gi
-    requests:
-      cpu: 1
-      memory: 2Gi
-      
-worker:
-  replicaCount: 3
-  image:
-    repository: forgellm-worker
-    tag: "latest"
-  resources:
-    limits:
-      nvidia.com/gpu: 1
-      memory: 16Gi
-    requests:
-      nvidia.com/gpu: 1
-      memory: 8Gi
+image:
+  repository: forgellm
+  pullPolicy: IfNotPresent
+  tag: "latest"
 
-redis:
-  enabled: true
-  architecture: standalone
+service:
+  type: ClusterIP
+  port: 8000
 
-postgresql:
+ingress:
   enabled: true
-  
-minio:
-  enabled: true
-  
-autoscaling:
-  enabled: true
-  minReplicas: 1
-  maxReplicas: 5
-  targetCPUUtilizationPercentage: 80
+  className: "nginx"
+  hosts:
+    - host: forgellm.internal
+      paths:
+        - path: /
+          pathType: Prefix
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 4Gi
+    nvidia.com/gpu: 1
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+env:
+  ENVIRONMENT: "production"
+  DATABASE_URL: "postgresql://postgres:postgres@postgres-service:5432/forgellm"
+  REDIS_URL: "redis://redis-service:6379/0"

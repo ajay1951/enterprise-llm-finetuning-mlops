@@ -36,6 +36,28 @@ def run_training_job(self, job_id: str):
         event_service.publish_log(db, job_id, sequence, "INFO", "Training started")
         sequence += 1
 
+        # Start MLflow run
+        from backend.forgellm_api.services.mlflow_service import mlflow_service
+        mlflow_run_id = None
+        try:
+            params = {
+                "base_model": job.base_model,
+                "project_id": job.project_id,
+                "dataset_id": job.dataset_id,
+            }
+            if job.hyperparameters:
+                params.update(job.hyperparameters)
+                
+            mlflow_run_id = mlflow_service.start_training_run(
+                experiment_name=f"project_{job.project_id}",
+                run_name=f"job_{job.id}",
+                params=params,
+                tags={"job_id": job.id, "type": "fine-tuning"}
+            )
+            logger.info(f"Started MLflow run {mlflow_run_id}")
+        except Exception as e:
+            logger.warning(f"Failed to start MLflow run: {e}")
+
         # For now, simulate training steps to verify state transitions.
         try:
             total_steps = 100
@@ -79,6 +101,12 @@ def run_training_job(self, job_id: str):
                 
                 event_service.publish_and_persist_event(db, job_id, "training.progress", sequence, metric_data)
                 sequence += 1
+
+                if mlflow_run_id:
+                    try:
+                        mlflow_service.log_metric_step(mlflow_run_id, {"loss": current_loss}, step)
+                    except Exception:
+                        pass
 
                 if step % 20 == 0:
                     event_service.publish_log(db, job_id, sequence, "INFO", f"Step {step} / {total_steps} completed. Loss: {current_loss:.4f}")

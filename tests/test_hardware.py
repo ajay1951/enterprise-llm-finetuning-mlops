@@ -1,5 +1,6 @@
 from forgellm.hardware.detector import HardwareDetector
 
+
 def test_hardware_detection():
     hw = HardwareDetector.detect()
     assert hw.os_name is not None
