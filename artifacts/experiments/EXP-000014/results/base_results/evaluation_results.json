@@ -1,0 +1,33 @@
+{
+  "metadata": {
+    "timestamp": "2026-09-29T14:50:03.714698+00:00",
+    "git_sha": "2bfb6a7ead15aedee6407232d14614efb266de5a",
+    "model_version": "Qwen/Qwen2.5-0.5B-base",
+    "dataset_version": "v1",
+    "judge_metadata": {
+      "status": "disabled"
+    }
+  },
+  "aggregate_metrics": {
+    "total_samples": 1,
+    "avg_exact_match": 0.0,
+    "avg_rougeL": 0.0138,
+    "avg_semantic_similarity": 0.0556,
+    "avg_composite_quality_score": 0.2236
+  },
+  "aggregate_judge_metrics": null,
+  "results": [
+    {
+      "sample_id": 1,
+      "prompt": "Hello!",
+      "expected": "Hi there! How can I help you today?",
+      "generated": "system\nYou are a helpful assistant.\nuser\nHello!\nassistant\nHello!uable\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco",
+      "objective_metrics": {
+        "exact_match": 0.0,
+        "rougeL": 0.0138,
+        "semantic_similarity": 0.0556,
+        "composite_quality_score": 0.2236
+      }
+    }
+  ]
+}

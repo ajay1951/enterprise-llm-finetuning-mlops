@@ -122,8 +122,7 @@ async def main():
     save_dir = Path("benchmarks/inference/cpu")
     save_dir.mkdir(parents=True, exist_ok=True)
 
-    with open(save_dir / "results.json", "w") as f:
-        json.dump(all_metrics, f, indent=2)
+    (save_dir / "results.json").write_text(json.dumps(all_metrics, indent=2))
 
     print(f"\nBenchmark complete. Results saved to {save_dir}/results.json")
 

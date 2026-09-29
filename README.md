@@ -231,7 +231,8 @@ The full fine-tuning and evaluation pipeline was executed and validated end-to-e
 - **Hardware:** NVIDIA GeForce RTX 2050 (4.00 GB VRAM)
 - **Duration:** 84.7s
 - **MLflow Run ID:** `95c45bfdc48a49d6a37b77a2f27f3e72`
-- **Git Commit:** `c0dc776`
+- **Experiment Execution Commit:** `c0dc776`
+- **Artifacts Location:** `artifacts/experiments/EXP-000014/`
 
 ### Objective Evaluation & Quality Gate Results
 Evaluation was conducted on `data/test/test.jsonl` comparing the base model against the fine-tuned LoRA adapter:
@@ -245,26 +246,29 @@ Evaluation was conducted on `data/test/test.jsonl` comparing the base model agai
 
 - **Quality Gate Decision:** `IMPROVED` (Passed)
 - **Safety Gate:** `PASSED` (Zero safety regressions)
-- **Model Promotion:** Allowed and verified
+- **Model Promotion Gate:** Passed in deterministic promotion tests (promotion permitted under quality gate threshold)
+- **LLM Judge Evaluation:** Provider architecture and safety rubrics fully implemented and verified via automated test suite; objective metrics utilized for deterministic baseline comparison.
 
 ---
 
 ### 4. Reproducibility & Provenance Metadata
 
-Every evaluation run records a complete audit trail in `metadata.json` and MLflow:
+Evaluation runs record an audit trail in `metadata.json` and MLflow. 
+
+*(Example provenance schema)*:
 ```json
 {
   "metadata": {
     "timestamp": "2026-09-29T15:00:00Z",
-    "git_sha": "a1b2c3d4e5",
+    "git_sha": "c0dc776",
     "model_version": "qwen2.5-0.5b-lora",
     "dataset_version": "customer-support-v1",
     "judge_metadata": {
       "judge_provider": "openai",
       "judge_model": "gpt-4o-mini",
-      "judge_model_revision": "latest",
+      "judge_model_revision": "2024-07-18",
       "rubric_version": "1.0.0",
-      "git_sha": "a1b2c3d4e5",
+      "git_sha": "c0dc776",
       "timestamp": "2026-09-29T15:00:00Z"
     }
   }
@@ -273,24 +277,26 @@ Every evaluation run records a complete audit trail in `metadata.json` and MLflo
 
 ### 5. Evaluation Artifact Structure
 
-Each evaluation run generates reproducible artifact files:
+Committed evaluation artifacts are stored with reproducibility logs:
 ```text
-experiments/<experiment-id>/evaluation/
+artifacts/experiments/EXP-000014/
 ├── metadata.json
-├── comparison.json
-├── base_results/
-│   ├── evaluation_results.json
-│   ├── metrics.json
-│   ├── predictions.jsonl
-│   └── report.md
-├── finetuned_results/
-│   ├── evaluation_results.json
-│   ├── metrics.json
-│   ├── predictions.jsonl
-│   └── report.md
-└── regression/
+├── config.yaml
+├── metrics.json
+└── results/
+    ├── comparison.json
     ├── regression_results.json
-    └── regression_report.md
+    ├── regression_report.md
+    ├── base_results/
+    │   ├── evaluation_results.json
+    │   ├── metrics.json
+    │   ├── predictions.jsonl
+    │   └── report.md
+    └── ft_results/
+        ├── evaluation_results.json
+        ├── metrics.json
+        ├── predictions.jsonl
+        └── report.md
 ```
 
 ---

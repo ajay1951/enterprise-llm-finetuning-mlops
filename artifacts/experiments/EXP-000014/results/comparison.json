@@ -1,0 +1,20 @@
+[
+  {
+    "prompt": "Hello!",
+    "expected": "Hi there! How can I help you today?",
+    "base_response": "system\nYou are a helpful assistant.\nuser\nHello!\nassistant\nHello!uable\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco\nacco",
+    "ft_response": "system\nYou are a helpful assistant.\nuser\nHello!\nassistant\nHello!uable.\u897f\u73ed\nacco\nYou are a helpful assistant.\u897f\u73ed\nacco\nHello!uable.\u897f\u73ed\nacco\nYou are a helpful assistant.\u897f\u73ed\nacco\nHello!uable.\u897f\u73ed\nacco\nYou are a helpful assistant.\u897f\u73ed\nacco\nHello!uable.\u897f\u73ed\nacco\nYou are a helpful assistant.\u897f\u73ed\nacco\nHello!uable.\u897f\u73ed\nacco\nYou are a helpful assistant.\u897f\u73ed\nacco\nHello!uable.\u897f\u73ed\nacco\nYou are a helpful assistant.\u897f\u73ed\nacco\nHello!uable.\u897f\u73ed\nacco\nYou are a helpful assistant.\u897f\u73ed\nacco\nHello!uable.\u897f\u73ed\nacco\nYou are a helpful assistant.\u897f\u73ed\nacco\nHello!uable.\u897f\u73ed\nacco\nYou are a helpful assistant.\u897f\u73ed\nacco\nHello!uable.\u897f\u73ed\nacco\nYou are a helpful assistant.\u897f\u73ed\nacco\nHello!uable.\u897f\u73ed\nacco\nYou are a helpful assistant.\u897f\u73ed\nacco\nHello!uable.\u897f\u73ed\nacco\nYou are a helpful assistant.\u897f\u73ed\nacco\nHello!uable.\u897f\u73ed\nacco\nYou are a helpful assistant.\u897f\u73ed\nacco\nHello!uable.\u897f\u73ed\nacco\nYou are a helpful assistant.\u897f\u73ed\nacco\nHello!uable.",
+    "base_objective": {
+      "exact_match": 0.0,
+      "rougeL": 0.0138,
+      "semantic_similarity": 0.0556,
+      "composite_quality_score": 0.2236
+    },
+    "ft_objective": {
+      "exact_match": 0.0,
+      "rougeL": 0.0276,
+      "semantic_similarity": 0.05,
+      "composite_quality_score": 0.2288
+    }
+  }
+]
