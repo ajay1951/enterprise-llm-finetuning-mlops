@@ -70,7 +70,8 @@ class ForgeTrainer:
                 self.config.training.gradient_accumulation_steps = max(
                     4, self.config.training.gradient_accumulation_steps
                 )
-                self.config.quantization.load_in_4bit = True
+                self.config.quantization.enabled = True
+                self.config.quantization.bits = 4
 
     def train(self, callbacks: list | None = None):
         # 0. Save Metadata & Apply Guardrails
