@@ -1,9 +1,10 @@
-import asyncio
-import time
-import httpx
 import argparse
-import statistics
+import asyncio
 import logging
+import statistics
+import time
+
+import httpx
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

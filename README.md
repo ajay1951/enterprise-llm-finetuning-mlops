@@ -1,6 +1,6 @@
-# ForgeLLM: Enterprise AI Control Plane & LLM Fine-Tuning Platform
+# ForgeLLM: Control Plane & Fine-Tuning Platform for Open LLMs
 
-**ForgeLLM** is an open-source, enterprise-grade control plane and infrastructure for managing the complete lifecycle of Large Language Models (LLMs). It provides a unified, secure platform for dataset preparation, distributed LoRA/QLoRA Supervised Fine-Tuning (SFT), automated model evaluation, MLflow tracking, quality gates, and model serving.
+**ForgeLLM** is an open-source control plane and developer platform for managing the lifecycle of Large Language Models (LLMs). It provides a unified pipeline for dataset preparation, parameter-efficient LoRA/QLoRA Supervised Fine-Tuning (SFT), automated objective and LLM-as-a-Judge evaluation, MLflow tracking, regression quality gates, and model lifecycle management.
 
 ---
 
@@ -16,7 +16,7 @@
 * **Forge CLI (`forge`)**: Interactive command-line interface for hardware profiling, dataset preparation, fine-tuning, evaluation, interactive chat, and registry management.
 * **FastAPI Async Backend**: REST API with background task orchestration, worker pool management, and health telemetry.
 * **Next.js Web Dashboard**: Engineering dashboard for monitoring fine-tuning runs, evaluation benchmarks, and artifact registries.
-* **Production Readiness**: GitHub Actions CI/CD pipeline, Docker containerization, Bandit security scanning, and Pytest coverage.
+* **Quality & Security**: CI/CD-enabled pipeline, Docker containerization, Bandit security scanning, and automated Pytest test suite.
 
 ---
 
@@ -202,11 +202,11 @@ Model Prediction + Reference Answer + Rubric
 The `RegressionAnalyzer` compares baseline (base model) and fine-tuned model checkpoints:
 
 ```bash
-# Run baseline evaluation
-forge evaluate --baseline
+# Run standalone evaluation with YAML configuration
+python scripts/evaluate.py --config configs/training.yaml --test_file data/test/test.jsonl
 
-# Run fine-tuned evaluation with optional judge and automated regression check
-forge evaluate EXP-000011 --judge --threshold 0.05
+# Or evaluate a registered experiment via Forge CLI (with optional judge and quality gate tolerances)
+forge evaluate EXP-000014 --judge --max-rouge-degradation 0.05
 ```
 
 Quality Gate Decision Logic:
@@ -216,6 +216,38 @@ Quality Gate Decision Logic:
   * Objective metrics drop beyond tolerated degradation thresholds.
   * **Safety Score Regresses**: Any decrease in safety score instantly blocks promotion, regardless of ROUGE-L improvements.
   * LLM Judge overall score regresses beyond threshold.
+
+---
+
+## 🔬 Reproducible Example (EXP-000014)
+
+The full fine-tuning and evaluation pipeline was executed and validated end-to-end on local hardware.
+
+### Training Details
+- **Model:** `Qwen/Qwen2.5-0.5B`
+- **Dataset:** `customer-support:v1` (ChatML format)
+- **Method:** 4-bit QLoRA ($r=8, \alpha=16, \text{dropout}=0.05$)
+- **Steps / Epochs:** 3 steps / 1 epoch (micro-batch size = 1, gradient accumulation = 4)
+- **Hardware:** NVIDIA GeForce RTX 2050 (4.00 GB VRAM)
+- **Duration:** 84.7s
+- **MLflow Run ID:** `95c45bfdc48a49d6a37b77a2f27f3e72`
+- **Git Commit:** `c0dc776`
+
+### Objective Evaluation & Quality Gate Results
+Evaluation was conducted on `data/test/test.jsonl` comparing the base model against the fine-tuned LoRA adapter:
+
+| Metric | Base Model (`Qwen2.5-0.5B-base`) | Fine-Tuned (`Qwen2.5-0.5B-finetuned`) | Delta | Quality Gate Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **Exact Match** | `0.0%` | `0.0%` | `0.0000` | 🟢 `EQUIVALENT` |
+| **ROUGE-L** | `0.0138` | `0.0276` | `+0.0138` | 🟢 `IMPROVED` |
+| **Semantic Similarity** | `0.0556` | `0.0500` | `-0.0056` | 🟢 `TOLERATED` ($\le 0.02$) |
+| **Composite Quality Score** | `0.2236` | `0.2288` | `+0.0052` | 🟢 `IMPROVED` |
+
+- **Quality Gate Decision:** `IMPROVED` (Passed)
+- **Safety Gate:** `PASSED` (Zero safety regressions)
+- **Model Promotion:** Allowed and verified
+
+---
 
 ### 4. Reproducibility & Provenance Metadata
 

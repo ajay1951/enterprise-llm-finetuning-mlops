@@ -19,9 +19,16 @@ def main():
     )
     parser.add_argument(
         "--test_file",
+        "--test-file",
+        dest="test_file",
         type=str,
         default="data/test/test.jsonl",
         help="Path to test JSONL",
+    )
+    parser.add_argument(
+        "--judge",
+        action="store_true",
+        help="Enable LLM-as-a-Judge evaluation",
     )
     args = parser.parse_args()
 
@@ -43,8 +50,19 @@ def main():
     q_config = get_quantization_config(config.quantization)
     base_model = loader.load_model(quantization_config=q_config)
 
+    from forgellm.evaluation.judge import LLMJudge
+
+    llm_judge = LLMJudge() if args.judge else LLMJudge(provider="none")
+    if args.judge and not llm_judge.is_enabled():
+        print(
+            "Warning: --judge requested but judge provider is not configured. Running objective metrics only."
+        )
+
     base_evaluator = ForgeEvaluator(
-        base_model, tokenizer, model_version=f"{config.model.name}-base"
+        base_model,
+        tokenizer,
+        model_version=f"{config.model.name}-base",
+        judge=llm_judge,
     )
     base_results_dir = os.path.join(eval_out_dir, "base_results")
     base_results = base_evaluator.evaluate_test_set(args.test_file, base_results_dir)
@@ -57,7 +75,10 @@ def main():
 
     finetuned_model = PeftModel.from_pretrained(base_model, adapter_path)
     finetuned_evaluator = ForgeEvaluator(
-        finetuned_model, tokenizer, model_version=f"{config.model.name}-finetuned"
+        finetuned_model,
+        tokenizer,
+        model_version=f"{config.model.name}-finetuned",
+        judge=llm_judge,
     )
     finetuned_results_dir = os.path.join(eval_out_dir, "finetuned_results")
     finetuned_results = finetuned_evaluator.evaluate_test_set(

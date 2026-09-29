@@ -1,10 +1,11 @@
 import argparse
-import sys
 import os
-from forgellm.training.config import load_config
+import sys
+
 from forgellm.dataset.cleaner import DatasetCleaner
 from forgellm.dataset.formatter import DatasetFormatter
 from forgellm.dataset.splitter import DatasetSplitter
+from forgellm.training.config import load_config
 
 
 def main():
@@ -38,7 +39,7 @@ def main():
         sys.exit(1)
 
     # 2. Format to Hugging Face Dataset
-    print(f"Formatting dataset...")
+    print("Formatting dataset...")
     formatter = DatasetFormatter()
     try:
         dataset = formatter.format_dataset(cleaned_path)

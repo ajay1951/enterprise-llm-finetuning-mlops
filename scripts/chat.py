@@ -1,9 +1,11 @@
 import argparse
-import sys
 import os
-from forgellm.models.loader import ModelLoader
-from forgellm.inference.generator import ForgeGenerator
+import sys
+
 from peft import PeftModel
+
+from forgellm.inference.generator import ForgeGenerator
+from forgellm.models.loader import ModelLoader
 
 
 def main():
@@ -27,8 +29,8 @@ def main():
     tokenizer = loader.load_tokenizer()
 
     # Apply 4-bit quantization to ensure fast inference on low VRAM GPUs
-    from transformers import BitsAndBytesConfig
     import torch
+    from transformers import BitsAndBytesConfig
 
     q_config = BitsAndBytesConfig(
         load_in_4bit=True,

@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 import asyncio
-import time
 import json
-import statistics
-import aiohttp
 import os
+import statistics
+import time
 from pathlib import Path
+
+import aiohttp
 
 # Config
 TARGET_URL = os.environ.get("TARGET_URL", "http://localhost:8080/v1/chat/completions")

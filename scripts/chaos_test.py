@@ -1,7 +1,8 @@
-import asyncio
-import httpx
 import argparse
+import asyncio
 import random
+
+import httpx
 
 
 async def kill_random_worker(api_url):

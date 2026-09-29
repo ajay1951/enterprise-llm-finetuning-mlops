@@ -1,8 +1,9 @@
-import asyncio
-import httpx
-import time
 import argparse
+import asyncio
 import statistics
+import time
+
+import httpx
 
 
 async def send_request(client, url, payload, headers):
@@ -63,12 +64,12 @@ async def run_load_test(url, model_name, concurrency, total_requests):
         print(
             f"p95 latency: {statistics.quantiles(latencies, n=100)[94]:.2f}s"
             if len(latencies) >= 20
-            else f"p95: N/A"
+            else "p95: N/A"
         )
         print(
             f"p99 latency: {statistics.quantiles(latencies, n=100)[98]:.2f}s"
             if len(latencies) >= 100
-            else f"p99: N/A"
+            else "p99: N/A"
         )
 
 

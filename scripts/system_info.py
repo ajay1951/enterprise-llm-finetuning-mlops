@@ -1,6 +1,6 @@
-import sys
-import platform
 import importlib.util
+import platform
+import sys
 
 
 def check_package(package_name: str) -> str:
