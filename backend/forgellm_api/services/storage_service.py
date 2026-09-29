@@ -1,8 +1,8 @@
-import os
 import hashlib
-from typing import Optional, List, Dict, Any
-from urllib.parse import urlparse
 import json
+import os
+from typing import Any, Dict, List, Optional
+from urllib.parse import urlparse
 
 from backend.forgellm_api.core.config import get_settings
 
@@ -26,7 +26,7 @@ class ArtifactStorage:
     def delete(self, uri: str):
         raise NotImplementedError
 
-    def list(self, prefix: str) -> List[str]:
+    def list(self, prefix: str) -> list[str]:
         raise NotImplementedError
 
     def checksum(self, local_path: str) -> str:
@@ -74,7 +74,7 @@ class LocalStorage(ArtifactStorage):
         if os.path.exists(path):
             os.remove(path)
 
-    def list(self, prefix: str) -> List[str]:
+    def list(self, prefix: str) -> list[str]:
         # Simple mock list
         return []
 
@@ -128,7 +128,7 @@ class S3Storage(ArtifactStorage):
         key = self._get_key(uri)
         self.s3.delete_object(Bucket=self.bucket, Key=key)
 
-    def list(self, prefix: str) -> List[str]:
+    def list(self, prefix: str) -> list[str]:
         key_prefix = self._get_key(prefix)
         paginator = self.s3.get_paginator("list_objects_v2")
         pages = paginator.paginate(Bucket=self.bucket, Prefix=key_prefix)

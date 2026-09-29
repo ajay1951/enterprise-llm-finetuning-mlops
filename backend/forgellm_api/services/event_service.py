@@ -1,11 +1,13 @@
 import json
-import uuid
 import logging
+import uuid
 from datetime import datetime
+
 import redis
 from sqlalchemy.orm import Session
-from backend.forgellm_api.db.models.events import JobEvent, TrainingMetric, TrainingLog
+
 from backend.forgellm_api.core.config import get_settings
+from backend.forgellm_api.db.models.events import JobEvent, TrainingLog, TrainingMetric
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -21,6 +23,12 @@ class EventService:
                 settings.REDIS_URL, decode_responses=True
             )
         return self.redis_client
+
+    def _publish_safe(self, channel: str, message: str):
+        try:
+            self._get_redis().publish(channel, message)
+        except Exception as e:
+            logger.debug(f"Could not publish to Redis: {e}")
 
     def publish_and_persist_event(
         self, db: Session, job_id: str, event_type: str, sequence: int, data: dict
@@ -50,7 +58,7 @@ class EventService:
             "data": data,
         }
         channel = f"forgellm:job:{job_id}"
-        self._get_redis().publish(channel, json.dumps(payload))
+        self._publish_safe(channel, json.dumps(payload))
 
     def publish_metric(
         self,
@@ -88,7 +96,7 @@ class EventService:
             "data": metric_data,
         }
         channel = f"forgellm:job:{job_id}"
-        self._get_redis().publish(channel, json.dumps(payload))
+        self._publish_safe(channel, json.dumps(payload))
 
     def publish_log(
         self, db: Session, job_id: str, sequence: int, level: str, message: str
@@ -116,7 +124,7 @@ class EventService:
             "data": {"level": level, "message": message},
         }
         channel = f"forgellm:job:{job_id}"
-        self._get_redis().publish(channel, json.dumps(payload))
+        self._publish_safe(channel, json.dumps(payload))
 
     def get_events(self, db: Session, job_id: str, limit: int = 100):
         return (

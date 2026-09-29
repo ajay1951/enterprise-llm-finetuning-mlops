@@ -1,7 +1,8 @@
-import mlflow
-import os
 import logging
-from typing import Dict, Any, Optional
+import os
+from typing import Any, Dict, Optional
+
+import mlflow
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +24,8 @@ class MLflowService:
         self,
         experiment_name: str,
         run_name: str,
-        params: Dict[str, Any],
-        tags: Optional[Dict[str, str]] = None,
+        params: dict[str, Any],
+        tags: dict[str, str] | None = None,
     ) -> str:
         """
         Start a training run in MLflow, log params, and return the Run ID.
@@ -44,7 +45,7 @@ class MLflowService:
             logger.error(f"Failed to start run in MLflow: {e}")
             raise
 
-    def log_metric_step(self, run_id: str, metrics: Dict[str, float], step: int):
+    def log_metric_step(self, run_id: str, metrics: dict[str, float], step: int):
         """
         Log metrics at a specific step.
         """
@@ -55,7 +56,7 @@ class MLflowService:
             logger.error(f"Failed to log metric step to MLflow: {e}")
             raise
 
-    def log_evaluation_metrics(self, run_id: str, metrics: Dict[str, float]):
+    def log_evaluation_metrics(self, run_id: str, metrics: dict[str, float]):
         """
         Log evaluation metrics to an existing run.
         """

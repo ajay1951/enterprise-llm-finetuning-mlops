@@ -1,4 +1,4 @@
-import subprocess
+import subprocess  # nosec B404
 
 from forgellm.dataset.registry import DatasetRegistry
 from forgellm.experiments.metadata import ExperimentMetadata
@@ -14,7 +14,7 @@ class ExperimentManager:
     def _get_git_commit(self) -> str:
         try:
             commit = (
-                subprocess.check_output(
+                subprocess.check_output(  # nosec B603 B607
                     ["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL
                 )
                 .decode("utf-8")
@@ -23,7 +23,7 @@ class ExperimentManager:
 
             # Check if dirty
             status = (
-                subprocess.check_output(
+                subprocess.check_output(  # nosec B603 B607
                     ["git", "status", "--porcelain"], stderr=subprocess.DEVNULL
                 )
                 .decode("utf-8")

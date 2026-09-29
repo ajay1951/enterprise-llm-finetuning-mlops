@@ -1,11 +1,12 @@
 import asyncio
+import random
 from datetime import datetime, timedelta
+
 from sqlalchemy.orm import Session
 
+from backend.forgellm_api.db.models.orchestration import AutoscalingPolicy, Workload
 from backend.forgellm_api.db.session import SessionLocal
-from backend.forgellm_api.db.models.orchestration import Workload, AutoscalingPolicy
 from backend.forgellm_api.services.orchestration_service import orchestration_manager
-import random
 
 
 class AutoscalingController:

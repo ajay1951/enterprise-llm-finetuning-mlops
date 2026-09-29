@@ -1,6 +1,7 @@
-from sqlalchemy import Column, String, DateTime, func, JSON
-from backend.forgellm_api.db.session import Base
+from sqlalchemy import JSON, Column, DateTime, String, func
+
 from backend.forgellm_api.db.models.project import generate_uuid
+from backend.forgellm_api.db.session import Base
 
 
 class AuditLog(Base):

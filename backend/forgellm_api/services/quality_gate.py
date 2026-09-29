@@ -1,6 +1,6 @@
-import logging
 import json
-from typing import Dict, Any, Tuple, List
+import logging
+from typing import Any, Dict, List, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -17,8 +17,8 @@ class QualityGateService:
         }
 
     def evaluate_model(
-        self, evaluation_metrics: Dict[str, Any], thresholds: Dict[str, Any] = None
-    ) -> Tuple[bool, str, List[str]]:
+        self, evaluation_metrics: dict[str, Any], thresholds: dict[str, Any] = None
+    ) -> tuple[bool, str, list[str]]:
         """
         Evaluate a model's metrics against configured thresholds.
         Returns:
@@ -68,7 +68,7 @@ class QualityGateService:
         return is_passing, status, reasons
 
     def generate_quality_score_json(
-        self, is_passing: bool, status: str, reasons: List[str]
+        self, is_passing: bool, status: str, reasons: list[str]
     ) -> str:
         return json.dumps({"passed": is_passing, "status": status, "reasons": reasons})
 

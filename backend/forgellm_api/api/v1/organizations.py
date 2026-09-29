@@ -1,15 +1,17 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 from typing import List
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from slugify import slugify
-from backend.forgellm_api.db.session import get_db
+from sqlalchemy.orm import Session
+
+from backend.forgellm_api.api.dependencies.auth import get_current_user, require_role
 from backend.forgellm_api.db.models.organization import Organization, OrganizationMember
 from backend.forgellm_api.db.models.user import User
+from backend.forgellm_api.db.session import get_db
 from backend.forgellm_api.schemas.organization import (
     OrganizationCreate,
     OrganizationResponse,
 )
-from backend.forgellm_api.api.dependencies.auth import get_current_user, require_role
 
 router = APIRouter()
 
@@ -39,7 +41,7 @@ def create_organization(
     return org
 
 
-@router.get("/", response_model=List[OrganizationResponse])
+@router.get("/", response_model=list[OrganizationResponse])
 def list_organizations(
     current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):

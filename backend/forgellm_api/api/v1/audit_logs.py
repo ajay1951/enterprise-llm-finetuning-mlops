@@ -1,22 +1,24 @@
+from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List, Optional
-from backend.forgellm_api.db.session import get_db
-from backend.forgellm_api.db.models.user import User
+
+from backend.forgellm_api.api.dependencies.auth import get_current_user
 from backend.forgellm_api.db.models.audit import AuditLog
 from backend.forgellm_api.db.models.organization import OrganizationMember
+from backend.forgellm_api.db.models.user import User
+from backend.forgellm_api.db.session import get_db
 from backend.forgellm_api.schemas.audit import AuditLogResponse
-from backend.forgellm_api.api.dependencies.auth import get_current_user
 
 router = APIRouter()
 
 
-@router.get("/", response_model=List[AuditLogResponse])
+@router.get("/", response_model=list[AuditLogResponse])
 def list_audit_logs(
     organization_id: str,
-    action: Optional[str] = None,
-    project_id: Optional[str] = None,
-    user_id: Optional[str] = None,
+    action: str | None = None,
+    project_id: str | None = None,
+    user_id: str | None = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):

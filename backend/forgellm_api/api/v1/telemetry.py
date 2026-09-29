@@ -1,6 +1,7 @@
 import asyncio
 import json
 import time
+
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
@@ -36,7 +37,7 @@ async def stream_training_telemetry(job_id: str):
             }
 
             yield f"data: {json.dumps(data)}\n\n"
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.01)
 
         yield f"data: {json.dumps({'job_id': job_id, 'status': 'completed'})}\n\n"
 

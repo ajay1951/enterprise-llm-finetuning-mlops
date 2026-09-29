@@ -1,6 +1,7 @@
-from pydantic import BaseModel, ConfigDict
-from typing import Optional, List
 from datetime import datetime
+from typing import List, Optional
+
+from pydantic import BaseModel, ConfigDict
 
 
 class ModelImportRequest(BaseModel):
@@ -24,8 +25,8 @@ class ModelResponse(BaseModel):
     id: str
     project_id: str
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     created_at: datetime
-    versions: List[ModelVersionResponse] = []
+    versions: list[ModelVersionResponse] = []
 
     model_config = ConfigDict(from_attributes=True)

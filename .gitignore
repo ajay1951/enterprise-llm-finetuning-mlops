@@ -49,3 +49,5 @@ mlflow.db
 scratch_runner_*.py
 .ruff_cache/
 .pytest_cache/
+.coverage
+coverage.xml

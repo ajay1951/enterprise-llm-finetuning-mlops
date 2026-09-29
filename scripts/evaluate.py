@@ -83,8 +83,19 @@ def main():
         json.dump(comparison, f, indent=2)
 
     print("Running Regression Analysis...")
+    regression_dir = os.path.join(eval_out_dir, "regression")
     analyzer = RegressionAnalyzer(base_results, finetuned_results)
-    analyzer.generate_report(eval_out_dir)
+    analyzer.generate_report(regression_dir)
+
+    # Save run metadata
+    metadata = {
+        "config": config.model_dump(),
+        "base_model": config.model.name,
+        "adapter_path": adapter_path,
+        "test_file": args.test_file,
+    }
+    with open(os.path.join(eval_out_dir, "metadata.json"), "w", encoding="utf-8") as f:
+        json.dump(metadata, f, indent=2)
 
     print(f"Evaluation complete. Results saved to {eval_out_dir}")
 

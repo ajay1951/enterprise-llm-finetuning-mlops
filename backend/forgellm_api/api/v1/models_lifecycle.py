@@ -1,13 +1,14 @@
+import os
+from typing import Any, Dict, List
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import Dict, Any
-from backend.forgellm_api.db.session import get_db
+
 from backend.forgellm_api.core.security import get_current_user
-from backend.forgellm_api.db.models.model import ModelVersion, Model
 from backend.forgellm_api.db.models.audit import AuditLog
-from backend.forgellm_api.schemas.model import ModelResponse, ModelImportRequest
-from typing import List
-import os
+from backend.forgellm_api.db.models.model import Model, ModelVersion
+from backend.forgellm_api.db.session import get_db
+from backend.forgellm_api.schemas.model import ModelImportRequest, ModelResponse
 
 router = APIRouter(tags=["Model Lifecycle"])
 
@@ -61,7 +62,7 @@ def import_local_model(
     return model
 
 
-@router.get("/api/v1/projects/{project_id}/models", response_model=List[ModelResponse])
+@router.get("/api/v1/projects/{project_id}/models", response_model=list[ModelResponse])
 def get_models_by_project(
     project_id: str,
     db: Session = Depends(get_db),

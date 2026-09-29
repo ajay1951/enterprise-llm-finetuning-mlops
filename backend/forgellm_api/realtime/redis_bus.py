@@ -1,6 +1,8 @@
-import redis.asyncio as redis
 import json
 import logging
+
+import redis.asyncio as redis
+
 from backend.forgellm_api.core.config import get_settings
 
 logger = logging.getLogger(__name__)

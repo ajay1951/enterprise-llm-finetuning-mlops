@@ -1,18 +1,20 @@
+import hashlib
+import secrets
+from datetime import UTC, datetime, timezone
+from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List
-import secrets
-import hashlib
-from datetime import datetime, timezone
-from backend.forgellm_api.db.session import get_db
-from backend.forgellm_api.db.models.user import User, APIKey
+
+from backend.forgellm_api.api.dependencies.auth import get_current_user
 from backend.forgellm_api.db.models.organization import OrganizationMember
+from backend.forgellm_api.db.models.user import APIKey, User
+from backend.forgellm_api.db.session import get_db
 from backend.forgellm_api.schemas.api_key import (
     APIKeyCreate,
-    APIKeyResponse,
     APIKeyCreateResponse,
+    APIKeyResponse,
 )
-from backend.forgellm_api.api.dependencies.auth import get_current_user
 
 router = APIRouter()
 
@@ -66,7 +68,7 @@ def create_api_key(
     return APIKeyCreateResponse(key=api_key, secret=raw_key)
 
 
-@router.get("/", response_model=List[APIKeyResponse])
+@router.get("/", response_model=list[APIKeyResponse])
 def list_api_keys(
     organization_id: str,
     current_user: User = Depends(get_current_user),
@@ -112,7 +114,7 @@ def revoke_api_key(
     if not membership or membership.role not in ["OWNER", "ADMIN"]:
         raise HTTPException(status_code=403, detail="Not authorized to revoke API keys")
 
-    api_key.revoked_at = datetime.now(timezone.utc)
+    api_key.revoked_at = datetime.now(UTC)
     db.commit()
     db.refresh(api_key)
 

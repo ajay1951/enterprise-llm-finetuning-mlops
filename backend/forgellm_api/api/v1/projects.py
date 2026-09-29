@@ -1,14 +1,14 @@
-from fastapi import APIRouter, Depends, status
-from sqlalchemy.orm import Session
 from typing import List
 
+from fastapi import APIRouter, Depends, Request, status
+from sqlalchemy.orm import Session
+
+from backend.forgellm_api.api.dependencies.auth import get_current_user, require_role
+from backend.forgellm_api.core.audit import AuditLogger
+from backend.forgellm_api.db.models.user import User
 from backend.forgellm_api.db.session import get_db
 from backend.forgellm_api.schemas.project import ProjectCreate, ProjectResponse
 from backend.forgellm_api.services.project_service import ProjectService
-from backend.forgellm_api.api.dependencies.auth import get_current_user, require_role
-from backend.forgellm_api.db.models.user import User
-from backend.forgellm_api.core.audit import AuditLogger
-from fastapi import Request
 
 router = APIRouter(tags=["Projects"], prefix="/projects")
 
@@ -40,7 +40,7 @@ def create_project(
     return project
 
 
-@router.get("/", response_model=List[ProjectResponse])
+@router.get("/", response_model=list[ProjectResponse])
 def get_projects(
     organization_id: str = "org_default",
     skip: int = 0,

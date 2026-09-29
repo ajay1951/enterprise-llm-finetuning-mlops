@@ -1,12 +1,14 @@
 import logging
-from sqlalchemy.orm import Session
 from datetime import datetime
+
+from celery import Celery
+from sqlalchemy.orm import Session
+
+from backend.forgellm_api.core.config import get_settings
 from backend.forgellm_api.db.models.deployment import Deployment, DeploymentEvent
 from backend.forgellm_api.db.models.model import ModelVersion
 from backend.forgellm_api.schemas.deployment import DeploymentCreate
 from backend.forgellm_api.services.event_service import event_service
-from celery import Celery
-from backend.forgellm_api.core.config import get_settings
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -101,10 +103,12 @@ class DeploymentService:
         )
 
         # Publish an event to Redis pubsub so the deployment worker knows to terminate the subprocess
-        from backend.forgellm_api.realtime.redis_bus import redis_bus
         import asyncio
         import json
+
         import redis
+
+        from backend.forgellm_api.realtime.redis_bus import redis_bus
 
         # Use sync redis client to send stop signal since we are in sync service
         redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
@@ -150,8 +154,9 @@ class DeploymentService:
             "sequence": event.sequence,
             "data": data,
         }
-        import redis
         import json
+
+        import redis
 
         redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
         redis_client.publish(

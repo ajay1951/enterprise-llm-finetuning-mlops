@@ -1,19 +1,20 @@
-from pydantic import BaseModel
-from typing import Optional, Any
 from datetime import datetime
+from typing import Any, Optional
+
+from pydantic import BaseModel
 
 
 class AuditLogResponse(BaseModel):
     id: str
-    organization_id: Optional[str]
-    project_id: Optional[str]
-    user_id: Optional[str]
+    organization_id: str | None
+    project_id: str | None
+    user_id: str | None
     action: str
-    resource_type: Optional[str]
-    resource_id: Optional[str]
-    ip_address: Optional[str]
+    resource_type: str | None
+    resource_id: str | None
+    ip_address: str | None
     status: str
-    details: Optional[Any]
+    details: Any | None
     created_at: datetime
 
     class Config:

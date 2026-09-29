@@ -1,22 +1,23 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Header
-from sqlalchemy.orm import Session
-from typing import List, Optional
 from datetime import datetime
+from typing import List, Optional
 
-from backend.forgellm_api.db.session import get_db
+from fastapi import APIRouter, Depends, Header, HTTPException, status
+from sqlalchemy.orm import Session
+
+from backend.forgellm_api.core.config import get_settings
 from backend.forgellm_api.db.models.worker import Worker, WorkerGPU
+from backend.forgellm_api.db.session import get_db
 from backend.forgellm_api.schemas.worker import (
-    WorkerRegisterRequest,
     WorkerHeartbeatRequest,
+    WorkerRegisterRequest,
     WorkerResponse,
 )
-from backend.forgellm_api.core.config import get_settings
 
 router = APIRouter(tags=["Worker Registry"])
 settings = get_settings()
 
 
-def verify_worker_token(x_worker_token: Optional[str] = Header(None)):
+def verify_worker_token(x_worker_token: str | None = Header(None)):
     expected_token = getattr(settings, "WORKER_TOKEN", "default-insecure-worker-token")
     if not x_worker_token or x_worker_token != expected_token:
         raise HTTPException(status_code=401, detail="Invalid or missing worker token")
@@ -159,7 +160,7 @@ def enable_worker(worker_id: str, db: Session = Depends(get_db)):
     return {"status": "online"}
 
 
-@router.get("/workers", response_model=List[WorkerResponse])
+@router.get("/workers", response_model=list[WorkerResponse])
 def list_workers(db: Session = Depends(get_db)):
     return db.query(Worker).all()
 

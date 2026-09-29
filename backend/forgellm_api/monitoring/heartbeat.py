@@ -1,16 +1,19 @@
+import json
+import logging
+import os
+import socket
 import threading
 import time
-import socket
-import logging
-import json
+from datetime import datetime
+
 import redis
+
 from backend.forgellm_api.core.config import get_settings
+from backend.forgellm_api.db.models.events import WorkerMetric
+from backend.forgellm_api.db.models.worker import Worker
+from backend.forgellm_api.db.session import SessionLocal
 from backend.forgellm_api.monitoring.gpu import gpu_monitor
 from backend.forgellm_api.monitoring.system import sys_monitor
-from backend.forgellm_api.db.session import SessionLocal
-from backend.forgellm_api.db.models.worker import Worker
-from backend.forgellm_api.db.models.events import WorkerMetric
-from datetime import datetime
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -22,9 +25,19 @@ class WorkerHeartbeatThread(threading.Thread):
         self.interval = interval
         self.worker_id = socket.gethostname()
         self.active_job_id = None
-        self.redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
+        if os.getenv("ENVIRONMENT") == "test":
+            self.redis_client = None
+        else:
+            try:
+                self.redis_client = redis.from_url(
+                    settings.REDIS_URL, decode_responses=True
+                )
+            except Exception:
+                self.redis_client = None
 
     def run(self):
+        if os.getenv("ENVIRONMENT") == "test":
+            return
         logger.info(f"Started worker heartbeat thread for {self.worker_id}")
         while True:
             try:

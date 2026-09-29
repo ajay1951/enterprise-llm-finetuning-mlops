@@ -1,20 +1,22 @@
-from abc import ABC, abstractmethod
-from typing import Dict, Any, AsyncGenerator
-import httpx
-import json
 import asyncio
+import json
+from abc import ABC, abstractmethod
+from collections.abc import AsyncGenerator
+from typing import Any, Dict
+
+import httpx
 
 
 class ModelServerClient(ABC):
     @abstractmethod
     async def chat_completion(
-        self, endpoint: str, request_body: Dict[str, Any], headers: Dict[str, str]
-    ) -> Dict[str, Any]:
+        self, endpoint: str, request_body: dict[str, Any], headers: dict[str, str]
+    ) -> dict[str, Any]:
         pass
 
     @abstractmethod
     async def stream_chat_completion(
-        self, endpoint: str, request_body: Dict[str, Any], headers: Dict[str, str]
+        self, endpoint: str, request_body: dict[str, Any], headers: dict[str, str]
     ) -> AsyncGenerator[str, None]:
         pass
 
@@ -32,8 +34,8 @@ class VLLMClient(ModelServerClient):
         )
 
     async def chat_completion(
-        self, endpoint: str, request_body: Dict[str, Any], headers: Dict[str, str]
-    ) -> Dict[str, Any]:
+        self, endpoint: str, request_body: dict[str, Any], headers: dict[str, str]
+    ) -> dict[str, Any]:
         url = f"{endpoint.rstrip('/')}/v1/chat/completions"
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(url, json=request_body, headers=headers)
@@ -41,7 +43,7 @@ class VLLMClient(ModelServerClient):
             return response.json()
 
     async def stream_chat_completion(
-        self, endpoint: str, request_body: Dict[str, Any], headers: Dict[str, str]
+        self, endpoint: str, request_body: dict[str, Any], headers: dict[str, str]
     ) -> AsyncGenerator[str, None]:
         url = f"{endpoint.rstrip('/')}/v1/chat/completions"
         request_body["stream"] = True
@@ -73,8 +75,8 @@ class MockModelServerClient(ModelServerClient):
     """Mock client for local testing without GPUs."""
 
     async def chat_completion(
-        self, endpoint: str, request_body: Dict[str, Any], headers: Dict[str, str]
-    ) -> Dict[str, Any]:
+        self, endpoint: str, request_body: dict[str, Any], headers: dict[str, str]
+    ) -> dict[str, Any]:
         await asyncio.sleep(0.5)  # Simulate latency
         return {
             "id": "chatcmpl-mock123",
@@ -95,7 +97,7 @@ class MockModelServerClient(ModelServerClient):
         }
 
     async def stream_chat_completion(
-        self, endpoint: str, request_body: Dict[str, Any], headers: Dict[str, str]
+        self, endpoint: str, request_body: dict[str, Any], headers: dict[str, str]
     ) -> AsyncGenerator[str, None]:
         words = ["This ", "is ", "a ", "mock ", "streaming ", "response."]
         for w in words:

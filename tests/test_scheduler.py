@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -9,8 +9,8 @@ from backend.forgellm_api.services.scheduler_service import ResourceScheduler
 async def test_scheduler_best_fit():
     scheduler = ResourceScheduler()
     # Mock Redis lock to always succeed
-    scheduler.acquire_gpu_lock = MagicMock(return_value=True)
-    scheduler.release_gpu_lock = MagicMock(return_value=True)
+    scheduler.acquire_gpu_lock = AsyncMock(return_value=True)
+    scheduler.release_gpu_lock = AsyncMock(return_value=True)
 
     # Mock Database Session and Workers
     db = MagicMock()

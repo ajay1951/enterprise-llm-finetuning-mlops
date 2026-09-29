@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Dict, Any
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ class MetricsBuffer:
         except Exception as e:
             logger.error(f"Failed to dec load: {e}")
 
-    def record_inference_metrics(self, data: Dict[str, Any]):
+    def record_inference_metrics(self, data: dict[str, Any]):
         """
         data includes: request_id, model, version_id, deployment_id,
         project_id, org_id, latency_ms, ttft_ms, tokens, status

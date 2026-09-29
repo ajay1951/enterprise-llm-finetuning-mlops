@@ -1,6 +1,7 @@
-from pydantic import BaseModel
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel
 
 
 class OrganizationCreate(BaseModel):
@@ -12,7 +13,7 @@ class OrganizationResponse(BaseModel):
     name: str
     slug: str
     created_at: datetime
-    updated_at: Optional[datetime]
+    updated_at: datetime | None
 
     class Config:
         from_attributes = True

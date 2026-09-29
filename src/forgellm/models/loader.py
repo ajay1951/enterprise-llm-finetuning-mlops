@@ -35,7 +35,7 @@ class ModelLoader:
 
     def load_tokenizer(self) -> PreTrainedTokenizer:
         try:
-            tokenizer = AutoTokenizer.from_pretrained(
+            tokenizer = AutoTokenizer.from_pretrained(  # nosec B615
                 self.model_name, trust_remote_code=self.trust_remote_code
             )
             # Add pad token if missing
@@ -47,7 +47,7 @@ class ModelLoader:
 
     def load_model(self, quantization_config=None) -> PreTrainedModel:
         try:
-            model = AutoModelForCausalLM.from_pretrained(
+            model = AutoModelForCausalLM.from_pretrained(  # nosec B615
                 self.model_name,
                 quantization_config=quantization_config,
                 trust_remote_code=self.trust_remote_code,

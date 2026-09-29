@@ -1,7 +1,8 @@
-from fastapi import WebSocket
-from typing import Dict, List, Set
-import logging
 import asyncio
+import logging
+from typing import Dict, List, Set
+
+from fastapi import WebSocket
 
 logger = logging.getLogger(__name__)
 
@@ -9,7 +10,7 @@ logger = logging.getLogger(__name__)
 class ConnectionManager:
     def __init__(self):
         # job_id -> list of active websockets
-        self.active_connections: Dict[str, List[WebSocket]] = {}
+        self.active_connections: dict[str, list[WebSocket]] = {}
         self.lock = asyncio.Lock()
 
     async def connect(self, websocket: WebSocket, job_id: str):

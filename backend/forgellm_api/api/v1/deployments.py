@@ -1,14 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 from typing import List
 
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from sqlalchemy.orm import Session
+
+from backend.forgellm_api.api.dependencies.auth import get_current_user, require_role
+from backend.forgellm_api.core.audit import AuditLogger
+from backend.forgellm_api.db.models.project import Project
 from backend.forgellm_api.db.session import get_db
 from backend.forgellm_api.schemas.deployment import DeploymentCreate, DeploymentResponse
 from backend.forgellm_api.services.deployment_service import DeploymentService
-from backend.forgellm_api.api.dependencies.auth import get_current_user, require_role
-from backend.forgellm_api.db.models.project import Project
-from fastapi import Request
-from backend.forgellm_api.core.audit import AuditLogger
 
 router = APIRouter(tags=["Deployments"])
 
@@ -54,7 +54,7 @@ def create_deployment(
 
 
 @router.get(
-    "/projects/{project_id}/deployments", response_model=List[DeploymentResponse]
+    "/projects/{project_id}/deployments", response_model=list[DeploymentResponse]
 )
 def list_project_deployments(
     project_id: str,
@@ -77,7 +77,7 @@ def list_project_deployments(
     return service.get_deployments(project_id=project_id, skip=skip, limit=limit)
 
 
-@router.get("/deployments", response_model=List[DeploymentResponse])
+@router.get("/deployments", response_model=list[DeploymentResponse])
 def list_all_deployments(
     organization_id: str = "org_default",
     skip: int = 0,

@@ -1,52 +1,56 @@
-from fastapi import FastAPI
 import asyncio
-from fastapi.middleware.cors import CORSMiddleware
-from prometheus_client import make_asgi_app
 import logging
 
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from prometheus_client import make_asgi_app
+
 from backend.forgellm_api.api.v1 import (
-    health,
-    projects,
-    datasets,
-    training,
-    ws,
-    workers,
-    deployments,
-    inference,
-    storage,
-    workloads,
-    auth,
-    organizations,
     api_keys,
     audit_logs,
-    gateway,
-    experiments,
-    models_lifecycle,
+    auth,
     benchmarks,
+    datasets,
+    deployments,
+    experiments,
+    gateway,
+    health,
+    inference,
+    models_lifecycle,
+    organizations,
+    projects,
+    storage,
     telemetry,
+    training,
+    workers,
+    workloads,
+    ws,
 )
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+from backend.forgellm_api.services.autoscaling_controller import run_autoscaling_loop
 from backend.forgellm_api.services.health_service import monitor_workers_health
 from backend.forgellm_api.services.reconciliation_controller import (
     run_reconciliation_loop,
 )
-from backend.forgellm_api.services.autoscaling_controller import run_autoscaling_loop
 
 
 async def lifespan(app: FastAPI):
     # Startup
-    task = asyncio.create_task(monitor_workers_health())
-    recon_task = asyncio.create_task(run_reconciliation_loop())
-    auto_task = asyncio.create_task(run_autoscaling_loop())
+    import os
+
+    env = os.getenv("ENVIRONMENT", getattr(settings, "ENVIRONMENT", "development"))
+    if env != "test":
+        tasks.append(asyncio.create_task(monitor_workers_health()))
+        tasks.append(asyncio.create_task(run_reconciliation_loop()))
+        tasks.append(asyncio.create_task(run_autoscaling_loop()))
     yield
     # Shutdown
-    task.cancel()
-    recon_task.cancel()
-    auto_task.cancel()
+    for t in tasks:
+        t.cancel()
 
 
 app = FastAPI(

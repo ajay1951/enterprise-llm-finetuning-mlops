@@ -1,11 +1,13 @@
 import json
 import time
-from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
+
 import redis.asyncio as redis
-from backend.forgellm_api.db.models.worker import Worker, WorkerGPU
-from backend.forgellm_api.db.models.scheduling import JobAssignment, ResourceReservation
+from sqlalchemy.orm import Session
+
 from backend.forgellm_api.core.config import get_settings
+from backend.forgellm_api.db.models.scheduling import JobAssignment, ResourceReservation
+from backend.forgellm_api.db.models.worker import Worker, WorkerGPU
 
 settings = get_settings()
 

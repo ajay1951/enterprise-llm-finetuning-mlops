@@ -1,8 +1,10 @@
+import logging
 import os
+from typing import Optional
+
 import boto3
 from botocore.exceptions import ClientError
-from typing import Optional
-import logging
+
 from backend.forgellm_api.storage.base import StorageBackend
 
 logger = logging.getLogger(__name__)

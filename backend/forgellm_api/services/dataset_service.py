@@ -1,11 +1,12 @@
-import os
 import hashlib
-from fastapi import UploadFile, HTTPException
-from sqlalchemy.orm import Session
+import os
 from typing import List
 
-from backend.forgellm_api.db.models.project import Project
+from fastapi import HTTPException, UploadFile
+from sqlalchemy.orm import Session
+
 from backend.forgellm_api.db.models.dataset import Dataset, DatasetVersion
+from backend.forgellm_api.db.models.project import Project
 from backend.forgellm_api.schemas.dataset import DatasetBase, DatasetResponse
 from backend.forgellm_api.storage.base import StorageInterface
 
@@ -62,7 +63,7 @@ class DatasetService:
 
         return dataset
 
-    def get_datasets(self, project_id: str) -> List[Dataset]:
+    def get_datasets(self, project_id: str) -> list[Dataset]:
         return self.db.query(Dataset).filter(Dataset.project_id == project_id).all()
 
     def get_dataset(self, dataset_id: str) -> Dataset:

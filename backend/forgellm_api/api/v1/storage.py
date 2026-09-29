@@ -1,13 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
-from sqlalchemy.orm import Session
-from typing import List, Optional
+import json
 import os
 import tempfile
-import json
 from datetime import datetime
+from typing import List, Optional
 
-from backend.forgellm_api.db.session import get_db
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from sqlalchemy.orm import Session
+
 from backend.forgellm_api.db.models.storage import Artifact, ArtifactManifest
+from backend.forgellm_api.db.session import get_db
 from backend.forgellm_api.schemas.storage import ArtifactResponse
 from backend.forgellm_api.services.storage_service import get_storage
 
@@ -74,6 +75,6 @@ async def upload_artifact(
             os.remove(tmp_path)
 
 
-@router.get("/projects/{project_id}/artifacts", response_model=List[ArtifactResponse])
+@router.get("/projects/{project_id}/artifacts", response_model=list[ArtifactResponse])
 def list_artifacts(project_id: str, db: Session = Depends(get_db)):
     return db.query(Artifact).filter(Artifact.project_id == project_id).all()

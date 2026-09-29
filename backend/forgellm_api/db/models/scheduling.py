@@ -1,7 +1,8 @@
-from sqlalchemy import Column, String, DateTime, ForeignKey, func, Text, JSON, Float
+from sqlalchemy import JSON, Column, DateTime, Float, ForeignKey, String, Text, func
 from sqlalchemy.orm import relationship
-from backend.forgellm_api.db.session import Base
+
 from backend.forgellm_api.db.models.project import generate_uuid
+from backend.forgellm_api.db.session import Base
 
 
 class JobAssignment(Base):

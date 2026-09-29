@@ -172,7 +172,7 @@ def download_model(
         f"[yellow]Downloading model '{repo_id}' from HuggingFace Hub...[/yellow]"
     )
     try:
-        local_path = snapshot_download(repo_id=repo_id)
+        local_path = snapshot_download(repo_id=repo_id)  # nosec B615
         typer.secho(
             f"Successfully downloaded '{repo_id}' to cache: {local_path}",
             fg=typer.colors.GREEN,

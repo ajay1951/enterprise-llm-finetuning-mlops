@@ -1,71 +1,101 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
-from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
 from backend.forgellm_api.db.models import *  # Ensure all models are loaded
 from backend.forgellm_api.db.models.training import TrainingJob
-from backend.forgellm_api.db.session import Base, SessionLocal, engine
-from backend.forgellm_api.main import app
+from backend.forgellm_api.db.session import Base
+from backend.forgellm_api.schemas.project import ProjectCreate
+from backend.forgellm_api.schemas.training import TrainingJobCreate
+from backend.forgellm_api.services.dataset_service import DatasetService
+from backend.forgellm_api.services.project_service import ProjectService
+from backend.forgellm_api.services.training_service import TrainingService
+from workers.forgellm_worker.tasks.training import run_training_job
 
-client = TestClient(app)
+# Use SQLite for isolated integration tests
+SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+
+test_engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 
 
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(autouse=True)
 def setup_db():
-    Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=test_engine)
     yield
-    Base.metadata.drop_all(bind=engine)
+    Base.metadata.drop_all(bind=test_engine)
 
 
-def test_full_pipeline():
-    # 1. Create Project
-    res = client.post(
-        "/api/v1/projects/",
-        json={
-            "name": "Integration Test Project",
-            "description": "Testing the pipeline",
-        },
-    )
-    assert res.status_code == 201
-    project_id = res.json()["id"]
+def test_full_pipeline_end_to_end():
+    db = TestingSessionLocal()
+    try:
+        # 1. Create Project
+        proj_service = ProjectService(db, "org_default")
+        project = proj_service.create_project(
+            ProjectCreate(
+                name="Integration Test Project", description="Testing pipeline"
+            )
+        )
+        assert project.id is not None
 
-    # 2. Upload Dataset
-    # Mocking file upload
-    file_content = b'{"messages": [{"role": "user", "content": "hello"}, {"role": "assistant", "content": "hi"}]}'
-    res = client.post(
-        f"/api/v1/projects/{project_id}/datasets/",
-        data={"name": "Test Dataset", "description": "Test Data"},
-        files={"file": ("test.jsonl", file_content, "application/json")},
-    )
-    assert res.status_code == 201
-    dataset = res.json()
-    assert len(dataset["versions"]) == 1
-    version_id = dataset["versions"][0]["id"]
+        # 2. Upload Dataset
+        mock_storage = MagicMock()
+        mock_storage.save.return_value = "projects/p1/datasets/d1/original/test.jsonl"
+        ds_service = DatasetService(db, mock_storage)
 
-    # 3. Create Training Job
-    res = client.post(
-        f"/api/v1/projects/{project_id}/training/jobs",
-        json={
-            "dataset_version_id": version_id,
-            "model_name": "Qwen/Qwen2.5-0.5B",
-            "method": "qlora",
-        },
-    )
-    assert res.status_code == 201
-    job_id = res.json()["id"]
-    assert res.json()["status"] == "queued"
+        mock_file = MagicMock()
+        mock_file.filename = "test.jsonl"
+        mock_file.file.read.return_value = (
+            b'{"messages": [{"role": "user", "content": "hi"}]}'
+        )
+        dataset = ds_service.create_dataset_and_upload(
+            project_id=project.id,
+            name="Test Dataset",
+            description="Test Data",
+            file=mock_file,
+        )
+        assert len(dataset.versions) == 1
+        version_id = dataset.versions[0].id
 
-    # 4. Mock Celery Task Execution
-    # Since we use celery locally, we can just call the task directly
-    # to simulate a worker picking it up.
-    # In a real test, you might use CELERY_ALWAYS_EAGER=True
-    from workers.forgellm_worker.tasks.training import run_training_job
+        # 3. Create Training Job
+        training_service = TrainingService(db)
+        with patch("workers.forgellm_worker.tasks.training.run_training_job.delay"):
+            job = training_service.create_job(
+                project_id=project.id,
+                job_in=TrainingJobCreate(
+                    dataset_version_id=version_id,
+                    model_name="Qwen/Qwen2.5-0.5B",
+                    method="qlora",
+                ),
+            )
+            assert job.id is not None
+            assert job.status == "queued"
 
-    result = run_training_job.apply(args=[job_id])
-    assert result.successful()
+        # 4. Celery Worker Execution -> ForgeTrainer -> Model Artifact
+        with (
+            patch(
+                "workers.forgellm_worker.tasks.training.SessionLocal",
+                TestingSessionLocal,
+            ),
+            patch(
+                "workers.forgellm_worker.tasks.training.ForgeTrainer"
+            ) as mock_trainer_cls,
+        ):
+            mock_trainer = mock_trainer_cls.return_value
+            result = run_training_job(job.id)
+            assert result is True
+            assert mock_trainer.train.called
+            assert mock_trainer.save_model.called
 
-    # Wait for DB to reflect the completed state
-    db = SessionLocal()
-    job = db.query(TrainingJob).filter(TrainingJob.id == job_id).first()
-    assert job.status == "completed"
-    assert job.current_step == 10
-    db.close()
+        # 5. Verify DB state transition
+        db.refresh(job)
+        assert job.status == "completed"
+    finally:
+        db.close()

@@ -1,16 +1,25 @@
-from fastapi import APIRouter, Depends, status, UploadFile, File, Form
-from sqlalchemy.orm import Session
 from typing import List
 
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Request,
+    UploadFile,
+    status,
+)
+from sqlalchemy.orm import Session
+
+from backend.forgellm_api.api.dependencies.auth import get_current_user, require_role
+from backend.forgellm_api.core.audit import AuditLogger
+from backend.forgellm_api.core.config import get_settings
+from backend.forgellm_api.db.models.project import Project
 from backend.forgellm_api.db.session import get_db
 from backend.forgellm_api.schemas.dataset import DatasetResponse
 from backend.forgellm_api.services.dataset_service import DatasetService
 from backend.forgellm_api.storage.local import LocalStorage
-from backend.forgellm_api.core.config import get_settings
-from backend.forgellm_api.api.dependencies.auth import get_current_user, require_role
-from backend.forgellm_api.db.models.project import Project
-from fastapi import HTTPException, Request
-from backend.forgellm_api.core.audit import AuditLogger
 
 router = APIRouter(tags=["Datasets"], prefix="/projects/{project_id}/datasets")
 
@@ -58,7 +67,7 @@ def upload_dataset(
     return dataset
 
 
-@router.get("/", response_model=List[DatasetResponse])
+@router.get("/", response_model=list[DatasetResponse])
 def get_datasets(
     project_id: str,
     organization_id: str = "org_default",

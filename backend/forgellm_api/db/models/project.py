@@ -1,7 +1,9 @@
-from sqlalchemy import Column, String, DateTime, func, Text, ForeignKey
-from sqlalchemy.orm import relationship
-from backend.forgellm_api.db.session import Base
 import uuid
+
+from sqlalchemy import Column, DateTime, ForeignKey, String, Text, func
+from sqlalchemy.orm import relationship
+
+from backend.forgellm_api.db.session import Base
 
 
 def generate_uuid():

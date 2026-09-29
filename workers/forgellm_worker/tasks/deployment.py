@@ -1,19 +1,21 @@
-from workers.forgellm_worker.celery_app import celery_app
-from backend.forgellm_api.db.session import SessionLocal
+import asyncio
+import json
+import logging
+import os
+import socket
+import subprocess
+import time
+from datetime import datetime
+
+import httpx
+import redis
+
+from backend.forgellm_api.core.config import get_settings
 from backend.forgellm_api.db.models.deployment import Deployment
 from backend.forgellm_api.db.models.model import ModelVersion
+from backend.forgellm_api.db.session import SessionLocal
 from backend.forgellm_api.services.deployment_service import DeploymentService
-from backend.forgellm_api.core.config import get_settings
-import logging
-import time
-import subprocess
-import socket
-import os
-import redis
-import json
-import asyncio
-import httpx
-from datetime import datetime
+from workers.forgellm_worker.celery_app import celery_app
 
 logger = logging.getLogger(__name__)
 settings = get_settings()

@@ -7,7 +7,7 @@ Composite Quality Score) and optional real LLM-as-a-Judge multi-dimensional scor
 import datetime
 import json
 import os
-import subprocess
+import subprocess  # nosec B404
 from typing import Any
 
 import mlflow
@@ -26,7 +26,7 @@ def get_git_sha() -> str:
     """Helper to retrieve active git commit SHA for auditability."""
     try:
         return (
-            subprocess.check_output(
+            subprocess.check_output(  # nosec B603 B607
                 ["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL
             )
             .decode("ascii")

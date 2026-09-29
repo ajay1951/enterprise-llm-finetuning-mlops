@@ -1,9 +1,8 @@
 import pytest
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from backend.forgellm_api.main import app
 from forgellm.evaluation.evaluator import ForgeEvaluator
-from forgellm.models.exporter import ModelExporter
 
 
 def test_evaluator_semantic_metrics():
@@ -30,7 +29,15 @@ def test_evaluator_semantic_metrics():
 
 
 def test_telemetry_stream_endpoint():
-    client = TestClient(app)
+    from backend.forgellm_api.api.v1.telemetry import router
+
+    test_app = FastAPI()
+    test_app.include_router(router)
+    client = TestClient(test_app)
     with client.stream("GET", "/api/v1/telemetry/stream/job_123") as response:
         assert response.status_code == 200
         assert "text/event-stream" in response.headers["content-type"]
+        for line in response.iter_lines():
+            if line:
+                assert "data:" in line
+                break

@@ -1,8 +1,10 @@
 import asyncio
 import logging
-from typing import Callable, Any
-from fastapi import HTTPException
+from collections.abc import Callable
+from typing import Any
+
 import httpx
+from fastapi import HTTPException
 
 logger = logging.getLogger(__name__)
 
@@ -32,13 +34,13 @@ async def with_retry_and_fallback(
             retries += 1
             if retries > max_retries:
                 logger.warning(
-                    f"Operation failed after {max_retries} retries: {str(e)}"
+                    f"Operation failed after {max_retries} retries: {e!s}"
                 )
                 break
 
             delay = base_delay * (2 ** (retries - 1))
             logger.info(
-                f"Transient error occurred: {str(e)}. Retrying in {delay}s (Attempt {retries}/{max_retries})"
+                f"Transient error occurred: {e!s}. Retrying in {delay}s (Attempt {retries}/{max_retries})"
             )
             await asyncio.sleep(delay)
 
@@ -62,7 +64,7 @@ async def with_retry_and_fallback(
                 raise
         except Exception as e:
             # Unknown exception
-            logger.error(f"Unexpected error during operation: {str(e)}")
+            logger.error(f"Unexpected error during operation: {e!s}")
             break
 
     # If we exit the loop, primary failed entirely.
@@ -72,7 +74,7 @@ async def with_retry_and_fallback(
             # Fallback doesn't get retries in this simple implementation
             return await fallback_operation()
         except Exception as fallback_err:
-            logger.error(f"Fallback operation also failed: {str(fallback_err)}")
+            logger.error(f"Fallback operation also failed: {fallback_err!s}")
             raise HTTPException(
                 status_code=502,
                 detail="Bad Gateway: Primary and Fallback models failed.",

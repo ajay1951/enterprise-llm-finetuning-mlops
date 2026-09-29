@@ -1,26 +1,26 @@
+import logging
 import time
 import uuid
-import logging
-from typing import Dict, Any
+from typing import Any, Dict
+
+# In a real app we'd inject a configured Redis client, using None for local fallback
+import redis
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from backend.forgellm_api.db.session import get_db
-from backend.forgellm_api.core.security import get_api_key_context
-from backend.forgellm_api.core.rate_limit import RateLimiter
-from backend.forgellm_api.core.gateway.router import (
-    resolve_model_version,
-    get_healthy_deployments,
-    select_replica,
-    get_fallback_version,
-)
 from backend.forgellm_api.core.gateway.adapters import get_model_client
-from backend.forgellm_api.core.gateway.retry import with_retry_and_fallback
 from backend.forgellm_api.core.gateway.metrics import MetricsBuffer
-
-# In a real app we'd inject a configured Redis client, using None for local fallback
-import redis
+from backend.forgellm_api.core.gateway.retry import with_retry_and_fallback
+from backend.forgellm_api.core.gateway.router import (
+    get_fallback_version,
+    get_healthy_deployments,
+    resolve_model_version,
+    select_replica,
+)
+from backend.forgellm_api.core.rate_limit import RateLimiter
+from backend.forgellm_api.core.security import get_api_key_context
+from backend.forgellm_api.db.session import get_db
 
 try:
     redis_client = redis.Redis(host="localhost", port=6379, db=1)

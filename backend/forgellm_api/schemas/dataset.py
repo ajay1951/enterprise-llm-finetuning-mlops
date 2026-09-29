@@ -1,6 +1,7 @@
-from pydantic import BaseModel, ConfigDict
-from typing import Optional, List
 from datetime import datetime
+from typing import List, Optional
+
+from pydantic import BaseModel, ConfigDict
 
 
 class DatasetVersionResponse(BaseModel):
@@ -16,13 +17,13 @@ class DatasetVersionResponse(BaseModel):
 
 class DatasetBase(BaseModel):
     name: str
-    description: Optional[str] = None
+    description: str | None = None
 
 
 class DatasetResponse(DatasetBase):
     id: str
     project_id: str
     created_at: datetime
-    versions: List[DatasetVersionResponse] = []
+    versions: list[DatasetVersionResponse] = []
 
     model_config = ConfigDict(from_attributes=True)

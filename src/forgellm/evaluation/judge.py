@@ -14,7 +14,7 @@ import datetime
 import json
 import logging
 import os
-import subprocess
+import subprocess  # nosec B404
 import urllib.error
 import urllib.request
 from typing import Any
@@ -240,7 +240,7 @@ class LLMJudge:
         """Retrieve current Git SHA for provenance tracking."""
         try:
             return (
-                subprocess.check_output(
+                subprocess.check_output(  # nosec B603 B607
                     ["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL
                 )
                 .decode("ascii")

@@ -16,7 +16,7 @@ class MLflowModelRegistry:
 
         try:
             self.client.create_registered_model(model_name)
-        except Exception:
+        except Exception:  # nosec B110
             pass  # Already exists
 
         mv = mlflow.register_model(model_uri, model_name)

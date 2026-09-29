@@ -1,14 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 from typing import List, Optional
 
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from backend.forgellm_api.db.models.model import ModelPromotionHistory, ModelVersion
 from backend.forgellm_api.db.session import get_db
 from backend.forgellm_api.schemas.registry import (
+    ArchiveModelRequest,
     PromoteModelRequest,
     RollbackModelRequest,
-    ArchiveModelRequest,
 )
-from backend.forgellm_api.db.models.model import ModelVersion, ModelPromotionHistory
 from backend.forgellm_api.services.event_service import event_service
 
 router = APIRouter(prefix="/models", tags=["Model Registry"])
@@ -56,15 +57,16 @@ def promote_model_version(
 
         try:
             q_score = json.loads(version.quality_score)
-            if not q_score.get("passed", False):
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Cannot promote to production: Quality gate failed. Reasons: {q_score.get('reasons')}",
-                )
         except Exception:
             raise HTTPException(
                 status_code=400,
                 detail="Cannot promote to production: Invalid quality score format",
+            )
+
+        if not q_score.get("passed", False):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot promote to production: Quality gate failed. Reasons: {q_score.get('reasons')}",
             )
 
     # Audit log

@@ -1,7 +1,8 @@
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
-from fastapi import HTTPException
 from typing import List
+
+from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
 from backend.forgellm_api.db.models.project import Project
 from backend.forgellm_api.schemas.project import ProjectCreate
@@ -46,7 +47,7 @@ class ProjectService:
                 detail=f"Project with name '{project_in.name}' already exists in this organization.",
             )
 
-    def get_projects(self, skip: int = 0, limit: int = 100) -> List[Project]:
+    def get_projects(self, skip: int = 0, limit: int = 100) -> list[Project]:
         return (
             self.db.query(Project)
             .filter(Project.organization_id == self.organization_id)

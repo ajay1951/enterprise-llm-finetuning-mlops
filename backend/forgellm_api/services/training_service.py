@@ -1,9 +1,10 @@
-from sqlalchemy.orm import Session
-from fastapi import HTTPException
 from typing import List
 
-from backend.forgellm_api.db.models.project import Project
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
+
 from backend.forgellm_api.db.models.dataset import DatasetVersion
+from backend.forgellm_api.db.models.project import Project
 from backend.forgellm_api.db.models.training import TrainingJob
 from backend.forgellm_api.schemas.training import TrainingJobCreate
 from workers.forgellm_worker.tasks.training import run_training_job
@@ -45,13 +46,20 @@ class TrainingService:
         self.db.refresh(job)
 
         # Dispatch Celery Task
-        run_training_job.delay(job.id)
+        try:
+            run_training_job.delay(job.id)
+        except Exception as e:
+            import logging
+
+            logging.getLogger(__name__).warning(
+                f"Could not dispatch celery task {job.id}: {e}"
+            )
 
         return job
 
     def get_jobs(
         self, project_id: str = None, skip: int = 0, limit: int = 100
-    ) -> List[TrainingJob]:
+    ) -> list[TrainingJob]:
         query = self.db.query(TrainingJob)
         if project_id:
             query = query.filter(TrainingJob.project_id == project_id)

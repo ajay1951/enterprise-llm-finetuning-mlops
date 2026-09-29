@@ -1,16 +1,18 @@
+from typing import Any, Dict
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import Dict, Any
-from backend.forgellm_api.db.session import get_db
+
 from backend.forgellm_api.core.security import get_current_user
-from backend.forgellm_api.db.models.benchmark import BenchmarkRun, BenchmarkResult
+from backend.forgellm_api.db.models.benchmark import BenchmarkResult, BenchmarkRun
+from backend.forgellm_api.db.session import get_db
 
 router = APIRouter(tags=["Benchmarks"])
 
 
 @router.post("/api/v1/benchmarks")
 def create_benchmark(
-    payload: Dict[str, Any],
+    payload: dict[str, Any],
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):

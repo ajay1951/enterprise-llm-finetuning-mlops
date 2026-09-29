@@ -1,18 +1,19 @@
 from sqlalchemy import (
+    JSON,
+    Boolean,
     Column,
-    String,
-    Integer,
     DateTime,
     Float,
     ForeignKey,
-    func,
+    Integer,
+    String,
     Text,
-    JSON,
-    Boolean,
+    func,
 )
 from sqlalchemy.orm import relationship
-from backend.forgellm_api.db.session import Base
+
 from backend.forgellm_api.db.models.project import generate_uuid
+from backend.forgellm_api.db.session import Base
 
 
 class Worker(Base):

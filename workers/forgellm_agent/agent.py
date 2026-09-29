@@ -1,12 +1,13 @@
-import os
-import time
-import socket
-import json
-import uuid
 import asyncio
+import json
+import os
+import socket
+import time
+import uuid
+from typing import Any, Dict, List
+
 import httpx
 import psutil
-from typing import Dict, Any, List
 
 from workers.forgellm_agent.cache_manager import ArtifactCacheManager
 
@@ -42,7 +43,7 @@ class ForgeLLMWorkerAgent:
         else:
             self.has_nvml = False
 
-    def get_gpu_info(self) -> List[Dict[str, Any]]:
+    def get_gpu_info(self) -> list[dict[str, Any]]:
         gpus = []
         if getattr(self, "has_nvml", False):
             try:

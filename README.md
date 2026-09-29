@@ -71,8 +71,8 @@
 
 ```powershell
 # Clone the repository
-git clone https://github.com/your-username/ForgeLLM.git
-cd ForgeLLM
+git clone https://github.com/ajay1951/enterprise-llm-finetuning-mlops.git
+cd enterprise-llm-finetuning-mlops
 
 # Create and activate Python virtual environment
 python -m venv venv
@@ -184,7 +184,7 @@ Model Prediction + Reference Answer + Rubric
   (1–5)             (1–5)         Following (1–5)    (1–5)            (1–5)
 ```
 
-* **Supported Providers**: OpenAI (`gpt-4o-mini`, `gpt-4o`), Ollama (`ollama/llama3`), vLLM, custom OpenAI-compatible endpoints, and `mock` (for deterministic unit tests & CI).
+* **Supported Providers**: OpenAI (`gpt-4o-mini`, `gpt-4o`), Ollama (`ollama/llama3`), vLLM, custom OpenAI-compatible endpoints, and `mock` (for deterministic unit tests & CI quality-gate simulation).
 * **Strict Schema Validation**: Evaluator outputs are validated via Pydantic (`JudgeScore`). Malformed responses or out-of-range scores raise explicit validation errors.
 * **Environment Configuration**:
   ```bash
@@ -193,6 +193,9 @@ Model Prediction + Reference Answer + Rubric
   export FORGELLM_JUDGE_API_KEY="sk-..."
   export FORGELLM_JUDGE_BASE_URL="https://api.openai.com/v1"
   ```
+
+> [!NOTE]
+> CI/CD automated test pipelines use the deterministic `mock` judge provider to validate gate logic without incurring API fees or network dependencies. Live deployments configure real LLM judge providers (`openai`, `ollama`, or `vLLM`).
 
 ### 3. Post-Training Regression Testing & Quality Gates
 
@@ -216,7 +219,7 @@ Quality Gate Decision Logic:
 
 ### 4. Reproducibility & Provenance Metadata
 
-Every evaluation run records a complete audit trail in `metrics.json` and MLflow:
+Every evaluation run records a complete audit trail in `metadata.json` and MLflow:
 ```json
 {
   "metadata": {
@@ -240,13 +243,22 @@ Every evaluation run records a complete audit trail in `metrics.json` and MLflow
 
 Each evaluation run generates reproducible artifact files:
 ```text
-experiments/<experiment-id>/evaluations/
-├── evaluation_results.json    # Complete structured evaluation payload
-├── metrics.json               # Summary metrics & provenance for CI/CD gates
-├── predictions.jsonl          # Per-sample prompt, ground-truth, and model output
-├── judge_results.jsonl        # Per-sample LLM Judge scores and qualitative reasoning
-├── report.md                  # Human-readable evaluation report with metric tables
-└── regression_report.md       # Base vs Fine-Tuned comparative delta analysis
+experiments/<experiment-id>/evaluation/
+├── metadata.json
+├── comparison.json
+├── base_results/
+│   ├── evaluation_results.json
+│   ├── metrics.json
+│   ├── predictions.jsonl
+│   └── report.md
+├── finetuned_results/
+│   ├── evaluation_results.json
+│   ├── metrics.json
+│   ├── predictions.jsonl
+│   └── report.md
+└── regression/
+    ├── regression_results.json
+    └── regression_report.md
 ```
 
 ---

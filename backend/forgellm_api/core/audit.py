@@ -1,8 +1,10 @@
+from typing import Any, Optional
+
+from fastapi import Request
 from sqlalchemy.orm import Session
+
 from backend.forgellm_api.db.models.audit import AuditLog
 from backend.forgellm_api.db.models.user import User
-from typing import Optional, Any
-from fastapi import Request
 
 
 class AuditLogger:
@@ -10,14 +12,14 @@ class AuditLogger:
     def log(
         db: Session,
         action: str,
-        organization_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        user_id: Optional[str] = None,
-        resource_type: Optional[str] = None,
-        resource_id: Optional[str] = None,
+        organization_id: str | None = None,
+        project_id: str | None = None,
+        user_id: str | None = None,
+        resource_type: str | None = None,
+        resource_id: str | None = None,
         status: str = "SUCCESS",
-        details: Optional[Any] = None,
-        request: Optional[Request] = None,
+        details: Any | None = None,
+        request: Request | None = None,
     ):
         ip_address = None
         if request and request.client:

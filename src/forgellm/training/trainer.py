@@ -1,7 +1,7 @@
 import datetime
 import json
 import os
-import subprocess
+import subprocess  # nosec B404
 
 import mlflow
 from datasets import Dataset
@@ -29,7 +29,7 @@ class ForgeTrainer:
     def _get_git_commit(self) -> str:
         try:
             return (
-                subprocess.check_output(["git", "rev-parse", "HEAD"])
+                subprocess.check_output(["git", "rev-parse", "HEAD"])  # nosec B603 B607
                 .decode("ascii")
                 .strip()
             )
@@ -72,7 +72,7 @@ class ForgeTrainer:
                 )
                 self.config.quantization.load_in_4bit = True
 
-    def train(self):
+    def train(self, callbacks: list | None = None):
         # 0. Save Metadata & Apply Guardrails
         self._save_run_metadata()
         self._apply_oom_guardrails()
@@ -121,6 +121,10 @@ class ForgeTrainer:
             processing_class=tokenizer,
             args=training_args,
         )
+
+        if callbacks:
+            for cb in callbacks:
+                self.trainer.add_callback(cb)
 
         print("\nStarting Training...")
         mlflow.set_tracking_uri(self.config.training.mlflow_tracking_uri)

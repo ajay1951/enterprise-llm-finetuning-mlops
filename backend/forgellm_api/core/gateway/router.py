@@ -1,19 +1,21 @@
-from typing import Optional, List, Dict
-import random
 import logging
-from sqlalchemy.orm import Session
+import random
+from typing import Dict, List, Optional
+
 from fastapi import HTTPException
+from sqlalchemy.orm import Session
+
+from backend.forgellm_api.db.models.deployment import Deployment, DeploymentEvent
+from backend.forgellm_api.db.models.experiment import (
+    ExperimentVariant,
+    GatewayExperiment,
+)
 from backend.forgellm_api.db.models.model import (
     Model,
     ModelAlias,
     ModelVersion,
     RoutingConfig,
 )
-from backend.forgellm_api.db.models.experiment import (
-    GatewayExperiment,
-    ExperimentVariant,
-)
-from backend.forgellm_api.db.models.deployment import Deployment, DeploymentEvent
 
 logger = logging.getLogger(__name__)
 
@@ -100,7 +102,7 @@ def resolve_model_version(db: Session, project_id: str, requested_model: str) ->
 
 def get_fallback_version(
     db: Session, project_id: str, requested_model: str
-) -> Optional[str]:
+) -> str | None:
     """Retrieves the fallback version if configured."""
     model = (
         db.query(Model)
@@ -115,7 +117,7 @@ def get_fallback_version(
     return None
 
 
-def get_healthy_deployments(db: Session, version_id: str) -> List[Deployment]:
+def get_healthy_deployments(db: Session, version_id: str) -> list[Deployment]:
     deployments = (
         db.query(Deployment)
         .filter(
@@ -129,7 +131,7 @@ def get_healthy_deployments(db: Session, version_id: str) -> List[Deployment]:
 
 
 def select_replica(
-    deployments: List[Deployment], strategy: str = "LEAST_LOADED", redis_client=None
+    deployments: list[Deployment], strategy: str = "LEAST_LOADED", redis_client=None
 ) -> Deployment:
     """
     Selects a replica based on the strategy.

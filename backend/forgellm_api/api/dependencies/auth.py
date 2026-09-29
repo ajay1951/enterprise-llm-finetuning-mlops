@@ -1,15 +1,16 @@
-from fastapi import Depends, HTTPException, status, Request
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer, SecurityScopes
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
-from backend.forgellm_api.db.session import get_db
-from backend.forgellm_api.core.security import SECRET_KEY, ALGORITHM
-from backend.forgellm_api.db.models.user import User, APIKey
+
+from backend.forgellm_api.core.security import ALGORITHM, SECRET_KEY
 from backend.forgellm_api.db.models.organization import OrganizationMember
+from backend.forgellm_api.db.models.user import APIKey, User
+from backend.forgellm_api.db.session import get_db
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
-from backend.forgellm_api.db.models.organization import Organization, OrganizationMember
+from backend.forgellm_api.db.models.organization import Organization
 
 
 def get_current_user(db: Session = Depends(get_db)) -> User:
@@ -109,11 +110,11 @@ def verify_api_key(required_scopes: list[str] = None):
 
         import datetime
 
-        now = datetime.datetime.now(datetime.timezone.utc)
+        now = datetime.datetime.now(datetime.UTC)
 
         if (
             api_key.expires_at
-            and api_key.expires_at.replace(tzinfo=datetime.timezone.utc) < now
+            and api_key.expires_at.replace(tzinfo=datetime.UTC) < now
         ):
             raise HTTPException(status_code=401, detail="API key expired")
 

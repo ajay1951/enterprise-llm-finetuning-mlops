@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any, List
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field
 
 
 class DeploymentConfiguration(BaseModel):
@@ -14,7 +15,7 @@ class DeploymentCreate(BaseModel):
     name: str
     backend: str = "transformers"
     device: str = "cuda"
-    configuration: Optional[DeploymentConfiguration] = None
+    configuration: DeploymentConfiguration | None = None
 
 
 class DeploymentResponse(BaseModel):
@@ -26,13 +27,13 @@ class DeploymentResponse(BaseModel):
     health_status: str
     serving_backend: str
     device: str
-    port: Optional[int]
-    endpoint: Optional[str]
-    configuration: Optional[Dict[str, Any]]
-    error_message: Optional[str]
+    port: int | None
+    endpoint: str | None
+    configuration: dict[str, Any] | None
+    error_message: str | None
     created_at: datetime
-    started_at: Optional[datetime]
-    stopped_at: Optional[datetime]
+    started_at: datetime | None
+    stopped_at: datetime | None
 
     class Config:
         orm_mode = True
@@ -40,15 +41,15 @@ class DeploymentResponse(BaseModel):
 
 class InferenceRequest(BaseModel):
     model: str
-    messages: List[Dict[str, str]]
-    temperature: Optional[float] = 0.7
-    max_tokens: Optional[int] = 512
-    stream: Optional[bool] = False
+    messages: list[dict[str, str]]
+    temperature: float | None = 0.7
+    max_tokens: int | None = 512
+    stream: bool | None = False
 
 
 class CompletionRequest(BaseModel):
     model: str
     prompt: str
-    temperature: Optional[float] = 0.7
-    max_tokens: Optional[int] = 512
-    stream: Optional[bool] = False
+    temperature: float | None = 0.7
+    max_tokens: int | None = 512
+    stream: bool | None = False

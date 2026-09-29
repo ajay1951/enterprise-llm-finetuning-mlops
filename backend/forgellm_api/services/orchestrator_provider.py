@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Any
+from typing import Any, Dict
 
 
 class OrchestratorProvider(ABC):
@@ -14,8 +14,8 @@ class OrchestratorProvider(ABC):
         name: str,
         image: str,
         replicas: int,
-        env: Dict[str, str],
-        resources: Dict[str, Any],
+        env: dict[str, str],
+        resources: dict[str, Any],
     ):
         pass
 
@@ -39,8 +39,8 @@ class LocalOrchestrator(OrchestratorProvider):
         name: str,
         image: str,
         replicas: int,
-        env: Dict[str, str],
-        resources: Dict[str, Any],
+        env: dict[str, str],
+        resources: dict[str, Any],
     ):
         # Locally, this maps to Workloads + Worker Agents handling the execution
         print(
@@ -64,8 +64,8 @@ class KubernetesOrchestrator(OrchestratorProvider):
         name: str,
         image: str,
         replicas: int,
-        env: Dict[str, str],
-        resources: Dict[str, Any],
+        env: dict[str, str],
+        resources: dict[str, Any],
     ):
         raise NotImplementedError("Kubernetes orchestration not yet fully implemented.")
 

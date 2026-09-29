@@ -20,7 +20,7 @@ async def test_retry_success_after_failure():
             raise httpx.ConnectError("Connection refused")
         return "SUCCESS"
 
-    result, _ = await with_retry_and_fallback(
+    result = await with_retry_and_fallback(
         flaky_operation, max_retries=2, base_delay=0.01
     )
 
@@ -38,9 +38,9 @@ async def test_fallback_triggers_after_max_retries():
         raise httpx.ConnectError("Connection refused")
 
     async def fallback_operation():
-        return "FALLBACK_SUCCESS", None
+        return "FALLBACK_SUCCESS"
 
-    result, _ = await with_retry_and_fallback(
+    result = await with_retry_and_fallback(
         failing_operation, fallback_operation, max_retries=2, base_delay=0.01
     )
 

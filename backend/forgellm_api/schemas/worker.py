@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any, List
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field
 
 
 class GPUInfo(BaseModel):
@@ -12,8 +13,8 @@ class GPUInfo(BaseModel):
     utilization: float = 0.0
     temperature: float = 0.0
     power: float = 0.0
-    status: Optional[str] = "AVAILABLE"
-    current_job_id: Optional[str] = None
+    status: str | None = "AVAILABLE"
+    current_job_id: str | None = None
 
 
 class WorkerRegisterRequest(BaseModel):
@@ -23,26 +24,26 @@ class WorkerRegisterRequest(BaseModel):
     cpu_count: int
     ram_total: float
     gpu_count: int
-    gpus: List[GPUInfo] = []
-    software_version: Optional[str] = None
-    cuda_version: Optional[str] = None
-    driver_version: Optional[str] = None
-    region: Optional[str] = None
-    zone: Optional[str] = None
-    metadata_json: Optional[Dict[str, Any]] = None
+    gpus: list[GPUInfo] = []
+    software_version: str | None = None
+    cuda_version: str | None = None
+    driver_version: str | None = None
+    region: str | None = None
+    zone: str | None = None
+    metadata_json: dict[str, Any] | None = None
 
 
 class WorkerHeartbeatRequest(BaseModel):
     status: str
     ram_available: float
-    gpus: List[GPUInfo] = []
-    active_jobs: List[str] = []
+    gpus: list[GPUInfo] = []
+    active_jobs: list[str] = []
 
 
 class WorkerResponse(BaseModel):
     id: str
     worker_id: str
-    name: Optional[str]
+    name: str | None
     hostname: str
     status: str
     worker_type: str
@@ -50,10 +51,10 @@ class WorkerResponse(BaseModel):
     ram_total: float
     ram_available: float
     gpu_count: int
-    software_version: Optional[str]
-    last_heartbeat: Optional[datetime]
+    software_version: str | None
+    last_heartbeat: datetime | None
     registered_at: datetime
-    gpus: List[GPUInfo] = []
+    gpus: list[GPUInfo] = []
 
     class Config:
         from_attributes = True

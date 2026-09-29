@@ -1,14 +1,14 @@
-from fastapi import APIRouter, Depends, status
-from sqlalchemy.orm import Session
 from typing import List
 
-from backend.forgellm_api.db.session import get_db
-from backend.forgellm_api.schemas.training import TrainingJobCreate, TrainingJobResponse
-from backend.forgellm_api.services.training_service import TrainingService
-from backend.forgellm_api.services.event_service import event_service
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
 from backend.forgellm_api.api.dependencies.auth import get_current_user, require_role
 from backend.forgellm_api.db.models.project import Project
-from fastapi import HTTPException
+from backend.forgellm_api.db.session import get_db
+from backend.forgellm_api.schemas.training import TrainingJobCreate, TrainingJobResponse
+from backend.forgellm_api.services.event_service import event_service
+from backend.forgellm_api.services.training_service import TrainingService
 
 router = APIRouter(tags=["Training"])
 
@@ -38,7 +38,7 @@ def create_training_job(
     return service.create_job(project_id, job_in)
 
 
-@router.get("/training/jobs", response_model=List[TrainingJobResponse])
+@router.get("/training/jobs", response_model=list[TrainingJobResponse])
 def list_all_jobs(
     organization_id: str = "org_default",
     project_id: str = None,

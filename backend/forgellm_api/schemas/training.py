@@ -1,12 +1,13 @@
-from pydantic import BaseModel, ConfigDict
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel, ConfigDict
 
 
 class TrainingJobBase(BaseModel):
     model_name: str
     method: str = "qlora"
-    preset: Optional[str] = None
+    preset: str | None = None
     epochs: float = 1.0
     learning_rate: float = 2e-4
     lora_rank: int = 8
@@ -21,14 +22,14 @@ class TrainingJobResponse(TrainingJobBase):
     project_id: str
     dataset_version_id: str
     status: str
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
     current_step: int
     total_steps: int
     current_epoch: float
-    current_loss: Optional[float] = None
+    current_loss: float | None = None
 
     created_at: datetime
-    updated_at: Optional[datetime] = None
+    updated_at: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True)

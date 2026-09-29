@@ -1,25 +1,27 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 from datetime import datetime
-from jose import jwt, JWTError
-from backend.forgellm_api.db.session import get_db
-from backend.forgellm_api.db.models.user import User
-from backend.forgellm_api.schemas.auth import (
-    UserCreate,
-    UserLogin,
-    Token,
-    UserResponse,
-    RefreshTokenRequest,
-)
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from jose import JWTError, jwt
+from sqlalchemy.orm import Session
+
+from backend.forgellm_api.api.dependencies.auth import get_current_user
 from backend.forgellm_api.core.security import (
-    get_password_hash,
-    verify_password,
+    ALGORITHM,
+    SECRET_KEY,
     create_access_token,
     create_refresh_token,
-    SECRET_KEY,
-    ALGORITHM,
+    get_password_hash,
+    verify_password,
 )
-from backend.forgellm_api.api.dependencies.auth import get_current_user
+from backend.forgellm_api.db.models.user import User
+from backend.forgellm_api.db.session import get_db
+from backend.forgellm_api.schemas.auth import (
+    RefreshTokenRequest,
+    Token,
+    UserCreate,
+    UserLogin,
+    UserResponse,
+)
 
 router = APIRouter()
 

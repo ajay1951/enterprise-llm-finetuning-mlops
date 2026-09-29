@@ -1,5 +1,7 @@
-from celery import Celery
 import os
+
+from celery import Celery
+
 from backend.forgellm_api.core.config import get_settings
 
 settings = get_settings()

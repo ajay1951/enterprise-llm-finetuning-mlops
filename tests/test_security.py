@@ -49,7 +49,7 @@ def test_jwt_refresh_token_creation():
 # For unit test isolation, we verify the RBAC models are configured correctly.
 def test_organization_member_roles():
     org = Organization(id="org-1", name="Test Org", slug="test-org")
-    user = User(id="user-1", email="test@example.com", hashed_password="abc")
+    user = User(id="user-1", email="test@example.com", password_hash="abc")
 
     # Valid Role
     member = OrganizationMember(

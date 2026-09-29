@@ -1,6 +1,8 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-import logging
 import asyncio
+import logging
+
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+
 from backend.forgellm_api.realtime.connection_manager import manager
 from backend.forgellm_api.realtime.redis_bus import redis_bus
 

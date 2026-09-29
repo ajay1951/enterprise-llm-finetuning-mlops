@@ -1,17 +1,18 @@
 import asyncio
 from datetime import datetime
-from sqlalchemy.orm import Session
-from sqlalchemy import or_
 
-from backend.forgellm_api.db.session import SessionLocal
+from sqlalchemy import or_
+from sqlalchemy.orm import Session
+
 from backend.forgellm_api.db.models.orchestration import (
+    ResourceQuota,
+    ScalingEvent,
     Workload,
     WorkloadReplica,
-    ScalingEvent,
 )
 from backend.forgellm_api.db.models.worker import Worker, WorkerGPU
+from backend.forgellm_api.db.session import SessionLocal
 from backend.forgellm_api.services.scheduler_service import scheduler_service
-from backend.forgellm_api.db.models.orchestration import ResourceQuota
 
 
 class ResourceQuotaError(Exception):

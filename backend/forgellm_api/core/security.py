@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta
 from typing import Any, Union
+
+import bcrypt
 from jose import jwt
-from passlib.context import CryptContext
+
 from backend.forgellm_api.core.config import get_settings
 
 settings = get_settings()
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Optional config defaults if not in core/config.py
 ALGORITHM = getattr(settings, "JWT_ALGORITHM", "HS256")
@@ -20,15 +20,22 @@ REFRESH_TOKEN_EXPIRE_DAYS = getattr(settings, "REFRESH_TOKEN_EXPIRE_DAYS", 7)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        return bcrypt.checkpw(
+            plain_password.encode("utf-8")[:72], hashed_password.encode("utf-8")
+        )
+    except Exception:
+        return False
 
 
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    pwd_bytes = password.encode("utf-8")[:72]
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(pwd_bytes, salt).decode("utf-8")
 
 
 def create_access_token(
-    subject: Union[str, Any], expires_delta: timedelta = None
+    subject: str | Any, expires_delta: timedelta = None
 ) -> str:
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -40,7 +47,7 @@ def create_access_token(
 
 
 def create_refresh_token(
-    subject: Union[str, Any], expires_delta: timedelta = None
+    subject: str | Any, expires_delta: timedelta = None
 ) -> str:
     if expires_delta:
         expire = datetime.utcnow() + expires_delta

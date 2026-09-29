@@ -1,5 +1,5 @@
 import uuid
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
 
 class ComputeProviderError(Exception):
@@ -34,7 +34,7 @@ class ComputeProvider:
     def get_status(self, instance_id: str) -> str:
         raise NotImplementedError
 
-    def list_instances(self) -> List[Dict[str, Any]]:
+    def list_instances(self) -> list[dict[str, Any]]:
         raise NotImplementedError
 
 
@@ -74,7 +74,7 @@ class LocalProvider(ComputeProvider):
             "status", ComputeInstanceStatus.ERROR
         )
 
-    def list_instances(self) -> List[Dict[str, Any]]:
+    def list_instances(self) -> list[dict[str, Any]]:
         return list(self._instances.values())
 
 
