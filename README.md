@@ -9,10 +9,13 @@
 * **Dataset Management**: Data validation, deduplication, cleaning, ChatML formatting, and versioned dataset registry.
 * **Efficient Fine-Tuning**: Parameter-efficient SFT powered by `peft`, `bitsandbytes` (4-bit/8-bit QLoRA), `transformers`, and `trl` with customizable model presets.
 * **MLflow Tracking & Registry**: Automated experiment logging (loss curves, hyperparameters, metrics) and lifecycle stage management (`Production` alias).
-* **Automated Quality Gates**: Evaluation engine comparing fine-tuned models against base models (ROUGE, BLEU, Perplexity) with automated pass/fail CI threshold gates.
+* **Dual Evaluation Engine**:
+  * **Deterministic Objective Metrics**: Exact Match, ROUGE-L, Semantic Token-Set Similarity, and heuristic Composite Quality Score.
+  * **Optional LLM-as-a-Judge**: Multi-dimensional evaluation (Relevance, Helpfulness, Instruction Following, Factuality, Safety) via OpenAI, Ollama, vLLM, or custom HTTP endpoints with strict Pydantic JSON validation.
+* **Post-Training Regression Gates**: Automated comparison between base model and fine-tuned checkpoints with multi-metric regression checks and zero-safety-regression enforcement.
 * **Forge CLI (`forge`)**: Interactive command-line interface for hardware profiling, dataset preparation, fine-tuning, evaluation, interactive chat, and registry management.
-* **FastAPI Async Backend**: High-performance REST API with background task orchestration, project management, and health endpoints.
-* **Next.js Web Dashboard**: High-density React dashboard designed for engineering teams to monitor experiments, training jobs, datasets, and model registries.
+* **FastAPI Async Backend**: REST API with background task orchestration, worker pool management, and health telemetry.
+* **Next.js Web Dashboard**: Engineering dashboard for monitoring fine-tuning runs, evaluation benchmarks, and artifact registries.
 * **Production Readiness**: GitHub Actions CI/CD pipeline, Docker containerization, Bandit security scanning, and Pytest coverage.
 
 ---
@@ -148,6 +151,103 @@ npm install
 npm run dev
 ```
 * **Web Dashboard**: `http://localhost:3000`
+
+---
+
+## 📊 Evaluation & Quality Gates Architecture
+
+ForgeLLM features a rigorous, reproducible evaluation pipeline with explicit separation between deterministic objective metrics and optional LLM-as-a-Judge evaluations.
+
+### 1. Objective Metrics (Deterministic & Offline)
+
+Objective evaluation runs locally with zero external API dependencies or costs:
+
+* **Exact Match (EM)**: Binary string equality ($1.0$ if whitespace-stripped predictions match ground truth, else $0.0$).
+* **ROUGE-L**: Longest Common Subsequence (LCS) F1 score capturing n-gram fluency and recall.
+* **Semantic Token Similarity**: Word-level Jaccard Index ($\frac{|A \cap B|}{|A \cup B|}$) over lowercased vocabulary sets.
+* **Composite Quality Score**: Deterministic heuristic combining lexical, semantic, and length fidelity:
+  $$\text{Composite} = 0.5 \times \text{ROUGE-L} + 0.3 \times \text{Semantic Similarity} + 0.2 \times \min\left(\frac{\text{len}(\text{pred})}{\max(\text{len}(\text{ref}), 1)}, 1.0\right)$$
+
+### 2. Optional LLM-as-a-Judge
+
+When enabled via CLI (`--judge`) or environment variables, ForgeLLM invokes a separate judge model to evaluate qualitative dimensions on a strict 1–5 scale:
+
+```text
+Model Prediction + Reference Answer + Rubric
+                      │
+                      ▼
+               LLM-as-a-Judge
+                      │
+     ┌────────────────┼────────────────┬────────────────┬────────────────┐
+     ▼                ▼                ▼                ▼                ▼
+ Relevance        Helpfulness    Instruction-      Factuality         Safety
+  (1–5)             (1–5)         Following (1–5)    (1–5)            (1–5)
+```
+
+* **Supported Providers**: OpenAI (`gpt-4o-mini`, `gpt-4o`), Ollama (`ollama/llama3`), vLLM, custom OpenAI-compatible endpoints, and `mock` (for deterministic unit tests & CI).
+* **Strict Schema Validation**: Evaluator outputs are validated via Pydantic (`JudgeScore`). Malformed responses or out-of-range scores raise explicit validation errors.
+* **Environment Configuration**:
+  ```bash
+  export FORGELLM_JUDGE_PROVIDER="openai" # openai, ollama, vllm, mock
+  export FORGELLM_JUDGE_MODEL="gpt-4o-mini"
+  export FORGELLM_JUDGE_API_KEY="sk-..."
+  export FORGELLM_JUDGE_BASE_URL="https://api.openai.com/v1"
+  ```
+
+### 3. Post-Training Regression Testing & Quality Gates
+
+The `RegressionAnalyzer` compares baseline (base model) and fine-tuned model checkpoints:
+
+```bash
+# Run baseline evaluation
+forge evaluate --baseline
+
+# Run fine-tuned evaluation with optional judge and automated regression check
+forge evaluate EXP-000011 --judge --threshold 0.05
+```
+
+Quality Gate Decision Logic:
+* **`IMPROVED`**: ROUGE-L and Composite Quality meet or exceed improvement thresholds without regressions in any other metric.
+* **`EQUIVALENT`**: Performance deltas remain within acceptable tolerance bands ($\le 2\%$ degradation).
+* **`REGRESSED`**: Fails immediately if:
+  * Objective metrics drop beyond tolerated degradation thresholds.
+  * **Safety Score Regresses**: Any decrease in safety score instantly blocks promotion, regardless of ROUGE-L improvements.
+  * LLM Judge overall score regresses beyond threshold.
+
+### 4. Reproducibility & Provenance Metadata
+
+Every evaluation run records a complete audit trail in `metrics.json` and MLflow:
+```json
+{
+  "metadata": {
+    "timestamp": "2026-09-29T15:00:00Z",
+    "git_sha": "a1b2c3d4e5",
+    "model_version": "qwen2.5-0.5b-lora",
+    "dataset_version": "customer-support-v1",
+    "judge_metadata": {
+      "judge_provider": "openai",
+      "judge_model": "gpt-4o-mini",
+      "judge_model_revision": "latest",
+      "rubric_version": "1.0.0",
+      "git_sha": "a1b2c3d4e5",
+      "timestamp": "2026-09-29T15:00:00Z"
+    }
+  }
+}
+```
+
+### 5. Evaluation Artifact Structure
+
+Each evaluation run generates reproducible artifact files:
+```text
+experiments/<experiment-id>/evaluations/
+├── evaluation_results.json    # Complete structured evaluation payload
+├── metrics.json               # Summary metrics & provenance for CI/CD gates
+├── predictions.jsonl          # Per-sample prompt, ground-truth, and model output
+├── judge_results.jsonl        # Per-sample LLM Judge scores and qualitative reasoning
+├── report.md                  # Human-readable evaluation report with metric tables
+└── regression_report.md       # Base vs Fine-Tuned comparative delta analysis
+```
 
 ---
 

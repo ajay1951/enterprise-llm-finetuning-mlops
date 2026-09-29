@@ -1,18 +1,23 @@
-import os
 import json
 import logging
-from datasets import Dataset
+import os
+
 import torch
-from trl import DPOTrainer, DPOConfig
+from datasets import Dataset
+from trl import DPOConfig, DPOTrainer
+
 from forgellm.models.loader import ModelLoader
 from forgellm.training.lora import get_lora_config
 
 logger = logging.getLogger(__name__)
 
+
 class ForgeDPOTrainer:
     """Handles Direct Preference Optimization (DPO) training for human alignment."""
 
-    def __init__(self, model_name: str = "Qwen/Qwen2.5-0.5B", output_dir: str = "outputs/dpo_run"):
+    def __init__(
+        self, model_name: str = "Qwen/Qwen2.5-0.5B", output_dir: str = "outputs/dpo_run"
+    ):
         self.model_name = model_name
         self.output_dir = output_dir
 
@@ -21,7 +26,7 @@ class ForgeDPOTrainer:
         dataset_path: str,
         num_epochs: int = 1,
         learning_rate: float = 5e-6,
-        beta: float = 0.1
+        beta: float = 0.1,
     ) -> str:
         """Execute DPO training on a dataset containing (prompt, chosen, rejected) pairs."""
         if not os.path.exists(dataset_path):
@@ -34,7 +39,10 @@ class ForgeDPOTrainer:
         tokenizer = loader.load_tokenizer()
 
         logger.info("Loading model for DPO alignment...")
-        model = loader.load_model(torch_dtype=torch.float16, device_map="auto" if torch.cuda.is_available() else "cpu")
+        model = loader.load_model(
+            torch_dtype=torch.float16,
+            device_map="auto" if torch.cuda.is_available() else "cpu",
+        )
 
         dpo_config = DPOConfig(
             output_dir=self.output_dir,
@@ -45,7 +53,7 @@ class ForgeDPOTrainer:
             gradient_accumulation_steps=4,
             logging_steps=5,
             save_strategy="no",
-            remove_unused_columns=False
+            remove_unused_columns=False,
         )
 
         trainer = DPOTrainer(

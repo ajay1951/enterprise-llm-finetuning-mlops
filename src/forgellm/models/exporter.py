@@ -1,11 +1,14 @@
-import os
 import logging
+import os
+
 import torch
 from peft import PeftModel
+
 from forgellm.models.loader import ModelLoader
 from forgellm.models.registry import ModelRegistry
 
 logger = logging.getLogger(__name__)
+
 
 class ModelExporter:
     """Handles merging PEFT LoRA adapters into base weights and exporting standalone formats."""
@@ -14,10 +17,7 @@ class ModelExporter:
         self.registry = registry or ModelRegistry()
 
     def export_merged_model(
-        self,
-        model_ref: str,
-        output_dir: str,
-        save_tokenizer: bool = True
+        self, model_ref: str, output_dir: str, save_tokenizer: bool = True
     ) -> str:
         """Merge PEFT adapter with base model and save full standalone weights."""
         if ":" not in model_ref:
@@ -35,7 +35,7 @@ class ModelExporter:
         logger.info(f"Loading base model: {base_model_name}")
         loader = ModelLoader(base_model_name)
         tokenizer = loader.load_tokenizer()
-        
+
         # Load base model in float16 for merging
         base_model = loader.load_model(torch_dtype=torch.float16, device_map="cpu")
 

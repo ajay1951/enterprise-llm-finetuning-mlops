@@ -13,12 +13,12 @@ class MLflowModelRegistry:
         """Register a model from a specific run to the Model Registry."""
         model_uri = f"runs:/{run_id}/model_adapter"
         print(f"Registering model {model_name} from {model_uri}...")
-        
+
         try:
             self.client.create_registered_model(model_name)
         except Exception:
-            pass # Already exists
-            
+            pass  # Already exists
+
         mv = mlflow.register_model(model_uri, model_name)
         print(f"Registered version {mv.version} of {model_name}")
         return mv.version
@@ -27,19 +27,17 @@ class MLflowModelRegistry:
         """Promote a registered model version to Production."""
         print(f"Promoting version {version} of {model_name} to Production alias...")
         self.client.set_registered_model_alias(
-            name=model_name,
-            alias="Production",
-            version=str(version)
+            name=model_name, alias="Production", version=str(version)
         )
         print("Promotion successful.")
 
     def rollback_model(self, model_name: str, target_version: int):
         """Rollback Production to a specific older version."""
-        print(f"Rolling back to version {target_version} of {model_name} as Production...")
+        print(
+            f"Rolling back to version {target_version} of {model_name} as Production..."
+        )
         self.client.set_registered_model_alias(
-            name=model_name,
-            alias="Production",
-            version=str(target_version)
+            name=model_name, alias="Production", version=str(target_version)
         )
         print("Rollback successful.")
 
@@ -49,7 +47,7 @@ class MLflowModelRegistry:
             return self.client.get_model_version_by_alias(model_name, "Production")
         except Exception:
             return None
-        
+
     def list_all_versions(self, model_name: str) -> list[Any]:
         """List all registered versions of a model."""
         try:

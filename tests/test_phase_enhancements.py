@@ -1,7 +1,10 @@
 import os
+
 import pytest
+
 from forgellm.dataset.validator import DatasetValidator
 from forgellm.training.trainer import ForgeTrainer
+
 
 def test_multi_turn_dataset_validator():
     validator = DatasetValidator()
@@ -10,16 +13,26 @@ def test_multi_turn_dataset_validator():
     # Valid multi-turn dialogue record
     multi_turn_record = {
         "messages": [
-            {"role": "system", "content": "You are a helpful customer support assistant."},
+            {
+                "role": "system",
+                "content": "You are a helpful customer support assistant.",
+            },
             {"role": "user", "content": "Hello, my app keeps closing on startup."},
-            {"role": "assistant", "content": "I can help with that. What version of the app are you running?"},
+            {
+                "role": "assistant",
+                "content": "I can help with that. What version of the app are you running?",
+            },
             {"role": "user", "content": "I am using version 2.4.1."},
-            {"role": "assistant", "content": "Thank you! Please try clearing app cache in settings."}
+            {
+                "role": "assistant",
+                "content": "Thank you! Please try clearing app cache in settings.",
+            },
         ]
     }
 
     assert validator._validate_record(multi_turn_record, 1, errors) is True
     assert len(errors) == 0
+
 
 def test_checkpoint_pruner_utility(tmp_path):
     output_dir = tmp_path / "checkpoints"
@@ -40,7 +53,6 @@ def test_checkpoint_pruner_utility(tmp_path):
 
     trainer = ForgeTrainer.__new__(ForgeTrainer)
     trainer.config = DummyConfig()
-
 
     trainer._prune_old_checkpoints(max_to_keep=3)
 

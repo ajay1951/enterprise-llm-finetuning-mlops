@@ -19,12 +19,12 @@ class ModelLoader:
         print("Model Loader")
         print("-" * 24)
         print(f"Model: {self.model_name}")
-        
+
         self.device = "cpu"
         self.cuda_available = torch.cuda.is_available()
-        
+
         print(f"CUDA available: {'YES' if self.cuda_available else 'NO'}")
-        
+
         if self.cuda_available:
             self.device = "cuda"
             print("Device: CUDA")
@@ -36,8 +36,7 @@ class ModelLoader:
     def load_tokenizer(self) -> PreTrainedTokenizer:
         try:
             tokenizer = AutoTokenizer.from_pretrained(
-                self.model_name,
-                trust_remote_code=self.trust_remote_code
+                self.model_name, trust_remote_code=self.trust_remote_code
             )
             # Add pad token if missing
             if tokenizer.pad_token is None:
@@ -52,7 +51,9 @@ class ModelLoader:
                 self.model_name,
                 quantization_config=quantization_config,
                 trust_remote_code=self.trust_remote_code,
-                device_map="auto" if self.cuda_available and quantization_config else None
+                device_map="auto"
+                if self.cuda_available and quantization_config
+                else None,
             )
             return model
         except Exception as e:

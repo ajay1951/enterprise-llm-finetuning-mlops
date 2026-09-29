@@ -17,7 +17,7 @@ def get_quantization_config(config: QuantizationConfig):
             "Run ForgeLLM on a CUDA-enabled GPU environment or\n"
             "disable 4-bit quantization for a compatible training configuration."
         )
-    
+
     try:
         import bitsandbytes
     except ImportError:
@@ -26,12 +26,12 @@ def get_quantization_config(config: QuantizationConfig):
             "Suggested action:\n"
             "pip install bitsandbytes"
         )
-        
+
     try:
         from transformers import BitsAndBytesConfig
     except ImportError:
         raise RuntimeError("ERROR: transformers library is missing or outdated.")
-        
+
     if config.bits == 4:
         return BitsAndBytesConfig(
             load_in_4bit=True,

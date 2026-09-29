@@ -11,12 +11,12 @@ from forgellm.training.config import ForgeConfig, load_config
 def test_load_config_valid():
     config_data = {
         "model": {"name": "TestModel", "model_version": "v2"},
-        "training": {"learning_rate": 0.01, "seed": 999}
+        "training": {"learning_rate": 0.01, "seed": 999},
     }
     with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".yaml") as f:
         yaml.dump(config_data, f)
         temp_path = f.name
-        
+
     try:
         config = load_config(temp_path)
         assert isinstance(config, ForgeConfig)
@@ -29,19 +29,21 @@ def test_load_config_valid():
     finally:
         os.remove(temp_path)
 
+
 def test_load_config_invalid_type():
     config_data = {
-        "training": {"learning_rate": "invalid_string"} # Expecting float
+        "training": {"learning_rate": "invalid_string"}  # Expecting float
     }
     with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".yaml") as f:
         yaml.dump(config_data, f)
         temp_path = f.name
-        
+
     try:
         with pytest.raises(ValidationError):
             load_config(temp_path)
     finally:
         os.remove(temp_path)
+
 
 def test_load_config_missing_file():
     with pytest.raises(FileNotFoundError):

@@ -1,7 +1,10 @@
-import pytest
-import os
 import json
+import os
+
+import pytest
+
 from forgellm.dataset.cleaner import DatasetCleaner
+
 
 def test_pii_sanitization():
     cleaner = DatasetCleaner(sanitize_pii=True)
@@ -13,14 +16,18 @@ def test_pii_sanitization():
     assert "[PHONE_REDACTED]" in scrubbed
     assert "[SSN_REDACTED]" in scrubbed
 
+
 def test_dataset_cleaner_pii_integration(tmp_path):
     input_file = tmp_path / "raw.jsonl"
     output_file = tmp_path / "cleaned.jsonl"
 
     sample_record = {
         "messages": [
-            {"role": "user", "content": "My email is user@domain.org and IP is 192.168.1.1."},
-            {"role": "assistant", "content": "Thanks! We received your request."}
+            {
+                "role": "user",
+                "content": "My email is user@domain.org and IP is 192.168.1.1.",
+            },
+            {"role": "assistant", "content": "Thanks! We received your request."},
         ]
     }
 
