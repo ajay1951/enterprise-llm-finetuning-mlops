@@ -54,7 +54,11 @@ class LocalFileStorage(StorageInterface):
         for base in dirs_to_check:
             if base.exists():
                 for d in base.iterdir():
-                    if d.is_dir() and d.name.startswith("EXP-") and d.name not in found_ids:
+                    if (
+                        d.is_dir()
+                        and d.name.startswith("EXP-")
+                        and d.name not in found_ids
+                    ):
                         exp = self.get_experiment(d.name)
                         if exp:
                             found_ids.add(d.name)
