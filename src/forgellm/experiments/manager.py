@@ -1,3 +1,4 @@
+import platform
 import subprocess  # nosec B404
 
 from forgellm.dataset.registry import DatasetRegistry
@@ -63,7 +64,7 @@ class ExperimentManager:
             method=method,
             status="created",
             git_commit=self._get_git_commit(),
-            python_version=hardware.pytorch_version,  # Close enough to Python env version tracking
+            python_version=platform.python_version(),
             torch_version=hardware.pytorch_version,
             transformers_version="unknown",  # We could import transformers and check __version__
             trl_version="unknown",

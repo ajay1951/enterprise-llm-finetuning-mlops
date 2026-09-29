@@ -219,19 +219,20 @@ Quality Gate Decision Logic:
 
 ---
 
-## 🔬 Reproducible Example (EXP-000014)
+## 🔬 Documented Experiment (EXP-000014)
 
-The full fine-tuning and evaluation pipeline was executed and validated end-to-end on local hardware.
+A complete fine-tuning and evaluation workflow was executed and recorded on local GPU hardware with committed configuration and evaluation artifacts.
 
 ### Training Details
 - **Model:** `Qwen/Qwen2.5-0.5B`
 - **Dataset:** `customer-support:v1` (ChatML format)
-- **Method:** 4-bit QLoRA ($r=8, \alpha=16, \text{dropout}=0.05$)
-- **Steps / Epochs:** 3 steps / 1 epoch (micro-batch size = 1, gradient accumulation = 4)
-- **Hardware:** NVIDIA GeForce RTX 2050 (4.00 GB VRAM)
+- **Method:** 16-bit LoRA ($r=8, \alpha=16, \text{dropout}=0.05$, quantization disabled)
+- **Steps / Epochs:** 3 steps / 1 epoch (micro-batch size = 1, gradient accumulation = 1)
+- **Hardware:** NVIDIA GeForce RTX 2050 (4.00 GB VRAM), CUDA 12.1
+- **Python / PyTorch:** Python 3.12.3 / PyTorch 2.5.1+cu121
 - **Duration:** 84.7s
 - **MLflow Run ID:** `95c45bfdc48a49d6a37b77a2f27f3e72`
-- **Experiment Execution Commit:** `c0dc776`
+- **Experiment Execution Commit:** `2bfb6a7ead15aedee6407232d14614efb266de5a-dirty` (local execution on uncommitted working tree)
 - **Artifacts Location:** `artifacts/experiments/EXP-000014/`
 
 ### Objective Evaluation & Quality Gate Results
@@ -246,8 +247,8 @@ Evaluation was conducted on `data/test/test.jsonl` comparing the base model agai
 
 - **Quality Gate Decision:** `IMPROVED` (Passed)
 - **Safety Gate:** `PASSED` (Zero safety regressions)
-- **Model Promotion Gate:** Passed in deterministic promotion tests (promotion permitted under quality gate threshold)
-- **LLM Judge Evaluation:** Provider architecture and safety rubrics fully implemented and verified via automated test suite; objective metrics utilized for deterministic baseline comparison.
+- **Model Promotion Gate:** Passed in deterministic promotion tests (promotion permitted under quality gate threshold; no production promotion executed for EXP-000014)
+- **LLM Judge Evaluation:** EXP-000014 used deterministic objective metrics. LLM-as-a-Judge architecture is implemented and covered by automated tests, but was not configured for this experiment.
 
 ---
 
