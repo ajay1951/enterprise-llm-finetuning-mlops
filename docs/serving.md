@@ -63,17 +63,12 @@ curl http://localhost:8000/v1/chat/completions \
 ```python
 from openai import OpenAI
 
-client = OpenAI(
-    base_url="http://localhost:8000/v1",
-    api_key="not-needed-yet" 
-)
+client = OpenAI(base_url="http://localhost:8000/v1", api_key="not-needed-yet")
 
 response = client.chat.completions.create(
     model="your-deployment-name",
-    messages=[
-        {"role": "user", "content": "Hello!"}
-    ],
-    stream=True
+    messages=[{"role": "user", "content": "Hello!"}],
+    stream=True,
 )
 
 for chunk in response:

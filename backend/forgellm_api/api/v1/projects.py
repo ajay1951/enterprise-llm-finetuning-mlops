@@ -12,20 +12,21 @@ from fastapi import Request
 
 router = APIRouter(tags=["Projects"], prefix="/projects")
 
+
 @router.post("/", response_model=ProjectResponse, status_code=status.HTTP_201_CREATED)
 def create_project(
     request: Request,
-    project_in: ProjectCreate, 
+    project_in: ProjectCreate,
     db: Session = Depends(get_db),
-    membership = Depends(require_role(["OWNER", "ADMIN"]))
+    membership=Depends(require_role(["OWNER", "ADMIN"])),
 ):
     # Ensure organization_id is set
     if not project_in.organization_id:
         project_in.organization_id = "org_default"
-        
+
     service = ProjectService(db, project_in.organization_id)
     project = service.create_project(project_in)
-    
+
     AuditLogger.log(
         db=db,
         action="project.create",
@@ -34,36 +35,40 @@ def create_project(
         user_id=membership.user_id,
         resource_type="Project",
         resource_id=project.id,
-        request=request
+        request=request,
     )
     return project
+
 
 @router.get("/", response_model=List[ProjectResponse])
 def get_projects(
     organization_id: str = "org_default",
-    skip: int = 0, limit: int = 100, 
+    skip: int = 0,
+    limit: int = 100,
     db: Session = Depends(get_db),
-    membership = Depends(require_role(["OWNER", "ADMIN", "DEVELOPER", "VIEWER"]))
+    membership=Depends(require_role(["OWNER", "ADMIN", "DEVELOPER", "VIEWER"])),
 ):
     service = ProjectService(db, organization_id)
     return service.get_projects(skip=skip, limit=limit)
 
+
 @router.get("/{project_id}", response_model=ProjectResponse)
 def get_project(
-    project_id: str, 
+    project_id: str,
     organization_id: str = "org_default",
     db: Session = Depends(get_db),
-    membership = Depends(require_role(["OWNER", "ADMIN", "DEVELOPER", "VIEWER"]))
+    membership=Depends(require_role(["OWNER", "ADMIN", "DEVELOPER", "VIEWER"])),
 ):
     service = ProjectService(db, organization_id)
     return service.get_project(project_id)
 
+
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_project(
-    project_id: str, 
+    project_id: str,
     organization_id: str = "org_default",
     db: Session = Depends(get_db),
-    membership = Depends(require_role(["OWNER", "ADMIN"]))
+    membership=Depends(require_role(["OWNER", "ADMIN"])),
 ):
     service = ProjectService(db, organization_id)
     service.delete_project(project_id)

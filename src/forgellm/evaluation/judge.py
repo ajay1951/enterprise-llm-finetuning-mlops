@@ -108,6 +108,9 @@ class OpenAICompatibleJudgeProvider(BaseJudgeProvider):
         self, system_prompt: str, user_prompt: str, timeout: float = 30.0
     ) -> str:
         url = f"{self.base_url}/chat/completions"
+        if not url.startswith(("http://", "https://")):
+            raise JudgeEvaluationError(f"Invalid URL scheme in judge endpoint: {url}")
+
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}",
@@ -130,7 +133,7 @@ class OpenAICompatibleJudgeProvider(BaseJudgeProvider):
         req = urllib.request.Request(url, data=data, headers=headers, method="POST")
 
         try:
-            with urllib.request.urlopen(req, timeout=timeout) as response:
+            with urllib.request.urlopen(req, timeout=timeout) as response:  # nosec B310
                 resp_data = json.loads(response.read().decode("utf-8"))
                 return resp_data["choices"][0]["message"]["content"].strip()
         except urllib.error.HTTPError as e:

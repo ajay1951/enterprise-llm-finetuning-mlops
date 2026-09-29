@@ -14,8 +14,15 @@ from forgellm.training.quantization import get_quantization_config
 
 def main():
     parser = argparse.ArgumentParser(description="Evaluate ForgeLLM models")
-    parser.add_argument("--config", type=str, required=True, help="Path to training config YAML")
-    parser.add_argument("--test_file", type=str, default="data/test/test.jsonl", help="Path to test JSONL")
+    parser.add_argument(
+        "--config", type=str, required=True, help="Path to training config YAML"
+    )
+    parser.add_argument(
+        "--test_file",
+        type=str,
+        default="data/test/test.jsonl",
+        help="Path to test JSONL",
+    )
     args = parser.parse_args()
 
     try:
@@ -28,13 +35,17 @@ def main():
     os.makedirs(eval_out_dir, exist_ok=True)
 
     print("Evaluating Base Model...")
-    loader = ModelLoader(config.model.name, trust_remote_code=config.model.trust_remote_code)
+    loader = ModelLoader(
+        config.model.name, trust_remote_code=config.model.trust_remote_code
+    )
     tokenizer = loader.load_tokenizer()
 
     q_config = get_quantization_config(config.quantization)
     base_model = loader.load_model(quantization_config=q_config)
 
-    base_evaluator = ForgeEvaluator(base_model, tokenizer, model_version=f"{config.model.name}-base")
+    base_evaluator = ForgeEvaluator(
+        base_model, tokenizer, model_version=f"{config.model.name}-base"
+    )
     base_results_dir = os.path.join(eval_out_dir, "base_results")
     base_results = base_evaluator.evaluate_test_set(args.test_file, base_results_dir)
 
@@ -45,21 +56,27 @@ def main():
         sys.exit(1)
 
     finetuned_model = PeftModel.from_pretrained(base_model, adapter_path)
-    finetuned_evaluator = ForgeEvaluator(finetuned_model, tokenizer, model_version=f"{config.model.name}-finetuned")
+    finetuned_evaluator = ForgeEvaluator(
+        finetuned_model, tokenizer, model_version=f"{config.model.name}-finetuned"
+    )
     finetuned_results_dir = os.path.join(eval_out_dir, "finetuned_results")
-    finetuned_results = finetuned_evaluator.evaluate_test_set(args.test_file, finetuned_results_dir)
+    finetuned_results = finetuned_evaluator.evaluate_test_set(
+        args.test_file, finetuned_results_dir
+    )
 
     print("Generating Comparison...")
     comparison = []
     for base_res, ft_res in zip(base_results["results"], finetuned_results["results"]):
-        comparison.append({
-            "prompt": base_res["prompt"],
-            "expected": base_res["expected"],
-            "base_response": base_res["generated"],
-            "finetuned_response": ft_res["generated"],
-            "base_metrics": base_res["objective_metrics"],
-            "finetuned_metrics": ft_res["objective_metrics"],
-        })
+        comparison.append(
+            {
+                "prompt": base_res["prompt"],
+                "expected": base_res["expected"],
+                "base_response": base_res["generated"],
+                "finetuned_response": ft_res["generated"],
+                "base_metrics": base_res["objective_metrics"],
+                "finetuned_metrics": ft_res["objective_metrics"],
+            }
+        )
 
     comp_path = os.path.join(eval_out_dir, "comparison.json")
     with open(comp_path, "w", encoding="utf-8") as f:

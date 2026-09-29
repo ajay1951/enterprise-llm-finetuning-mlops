@@ -1,8 +1,10 @@
 import uuid
 from typing import List, Dict, Any, Optional
 
+
 class ComputeProviderError(Exception):
     pass
+
 
 class ComputeInstanceStatus:
     STARTING = "STARTING"
@@ -11,10 +13,12 @@ class ComputeInstanceStatus:
     TERMINATED = "TERMINATED"
     ERROR = "ERROR"
 
+
 class ComputeProvider:
     """
     Base abstraction for cloud compute providers (AWS, GCP, RunPod, etc.)
     """
+
     def create_worker(self, instance_type: str, region: str) -> str:
         raise NotImplementedError
 
@@ -39,6 +43,7 @@ class LocalProvider(ComputeProvider):
     Implementation for local bare-metal / docker-compose environment.
     Cannot actually provision new hardware, returns mock data.
     """
+
     def __init__(self):
         self._instances = {}
 
@@ -48,7 +53,7 @@ class LocalProvider(ComputeProvider):
             "instance_id": instance_id,
             "type": instance_type,
             "region": region,
-            "status": ComputeInstanceStatus.RUNNING
+            "status": ComputeInstanceStatus.RUNNING,
         }
         return instance_id
 
@@ -65,10 +70,13 @@ class LocalProvider(ComputeProvider):
             self._instances[instance_id]["status"] = ComputeInstanceStatus.STOPPED
 
     def get_status(self, instance_id: str) -> str:
-        return self._instances.get(instance_id, {}).get("status", ComputeInstanceStatus.ERROR)
+        return self._instances.get(instance_id, {}).get(
+            "status", ComputeInstanceStatus.ERROR
+        )
 
     def list_instances(self) -> List[Dict[str, Any]]:
         return list(self._instances.values())
+
 
 def get_compute_provider(provider_name: str = "local") -> ComputeProvider:
     # Future integration point for AWSProvider, GCPProvider, etc.

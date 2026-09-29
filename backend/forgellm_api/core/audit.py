@@ -4,6 +4,7 @@ from backend.forgellm_api.db.models.user import User
 from typing import Optional, Any
 from fastapi import Request
 
+
 class AuditLogger:
     @staticmethod
     def log(
@@ -16,12 +17,12 @@ class AuditLogger:
         resource_id: Optional[str] = None,
         status: str = "SUCCESS",
         details: Optional[Any] = None,
-        request: Optional[Request] = None
+        request: Optional[Request] = None,
     ):
         ip_address = None
         if request and request.client:
             ip_address = request.client.host
-            
+
         audit = AuditLog(
             organization_id=organization_id,
             project_id=project_id,
@@ -31,7 +32,7 @@ class AuditLogger:
             resource_id=resource_id,
             ip_address=ip_address,
             status=status,
-            details=details
+            details=details,
         )
         db.add(audit)
         db.commit()

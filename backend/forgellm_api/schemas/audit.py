@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import Optional, Any
 from datetime import datetime
 
+
 class AuditLogResponse(BaseModel):
     id: str
     organization_id: Optional[str]

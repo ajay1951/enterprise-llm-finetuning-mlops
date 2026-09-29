@@ -221,3 +221,106 @@ def test_evaluator_with_active_judge(tmp_path):
     assert judge_agg["avg_overall"] == 5.0
     assert judge_agg["avg_safety"] == 5.0
     assert (out_dir / "judge_results.jsonl").exists()
+
+
+def test_ci_deterministic_regression_cases(tmp_path):
+    """Deterministic regression test for CI pipelines verifying quality gate decisions using MockJudgeProvider.
+
+    - Passing case: Fine-tuned improves quality, safety unchanged -> PASS (improved)
+    - Regression case: Quality improves, safety decreases -> FAIL (regressed)
+    - Equivalent case: Metrics within tolerance -> PASS (equivalent)
+    """
+    from forgellm.evaluation.regression import RegressionAnalyzer
+
+    # Baseline evaluation mock
+    base_eval = {
+        "aggregate_metrics": {
+            "avg_rougeL": 0.50,
+            "avg_exact_match": 0.40,
+            "avg_semantic_similarity": 0.60,
+            "avg_composite_quality_score": 0.55,
+        },
+        "aggregate_judge_metrics": {
+            "avg_overall": 3.8,
+            "avg_safety": 5.0,
+            "avg_relevance": 4.0,
+            "avg_helpfulness": 3.8,
+            "avg_instruction_following": 4.0,
+            "avg_factuality": 4.0,
+        },
+    }
+
+    # Case 1: Passing (Quality improves, safety intact)
+    ft_pass = {
+        "aggregate_metrics": {
+            "avg_rougeL": 0.65,
+            "avg_exact_match": 0.50,
+            "avg_semantic_similarity": 0.75,
+            "avg_composite_quality_score": 0.70,
+        },
+        "aggregate_judge_metrics": {
+            "avg_overall": 4.6,
+            "avg_safety": 5.0,
+            "avg_relevance": 4.8,
+            "avg_helpfulness": 4.6,
+            "avg_instruction_following": 4.8,
+            "avg_factuality": 4.6,
+        },
+    }
+    analyzer_pass = RegressionAnalyzer(base_eval, ft_pass)
+    status_pass, reasons_pass = analyzer_pass.check_quality_gate(
+        min_rouge_improvement=0.05
+    )
+    assert status_pass == "improved"
+    assert len(reasons_pass) == 0
+
+    # Case 2: Regression (Quality improves, but safety drops)
+    ft_regress = {
+        "aggregate_metrics": {
+            "avg_rougeL": 0.80,
+            "avg_exact_match": 0.70,
+            "avg_semantic_similarity": 0.85,
+            "avg_composite_quality_score": 0.82,
+        },
+        "aggregate_judge_metrics": {
+            "avg_overall": 4.9,
+            "avg_safety": 4.2,  # Safety drop -0.8
+            "avg_relevance": 4.9,
+            "avg_helpfulness": 4.9,
+            "avg_instruction_following": 4.9,
+            "avg_factuality": 4.9,
+        },
+    }
+    analyzer_regress = RegressionAnalyzer(base_eval, ft_regress)
+    status_regress, reasons_regress = analyzer_regress.check_quality_gate(
+        min_rouge_improvement=0.05,
+        max_safety_degradation=0.0,
+    )
+    assert status_regress == "regressed"
+    assert len(reasons_regress) > 0
+    assert any("Safety" in r or "safety" in r for r in reasons_regress)
+
+    # Case 3: Equivalent (Metrics within tolerance bounds)
+    ft_equiv = {
+        "aggregate_metrics": {
+            "avg_rougeL": 0.505,
+            "avg_exact_match": 0.40,
+            "avg_semantic_similarity": 0.605,
+            "avg_composite_quality_score": 0.552,
+        },
+        "aggregate_judge_metrics": {
+            "avg_overall": 3.82,
+            "avg_safety": 5.0,
+            "avg_relevance": 4.0,
+            "avg_helpfulness": 3.8,
+            "avg_instruction_following": 4.0,
+            "avg_factuality": 4.0,
+        },
+    }
+    analyzer_equiv = RegressionAnalyzer(base_eval, ft_equiv)
+    status_equiv, reasons_equiv = analyzer_equiv.check_quality_gate(
+        min_rouge_improvement=0.05,
+        max_rouge_degradation=0.02,
+    )
+    assert status_equiv == "equivalent"
+    assert len(reasons_equiv) == 0

@@ -5,8 +5,6 @@ from backend.forgellm_api.main import app
 from forgellm.evaluation.evaluator import ForgeEvaluator
 from forgellm.models.exporter import ModelExporter
 
-client = TestClient(app)
-
 
 def test_evaluator_semantic_metrics():
     # Test evaluation metrics calculation with semantic similarity and composite quality score
@@ -32,6 +30,7 @@ def test_evaluator_semantic_metrics():
 
 
 def test_telemetry_stream_endpoint():
-    response = client.get("/api/v1/telemetry/stream/job_123")
-    assert response.status_code == 200
-    assert "text/event-stream" in response.headers["content-type"]
+    client = TestClient(app)
+    with client.stream("GET", "/api/v1/telemetry/stream/job_123") as response:
+        assert response.status_code == 200
+        assert "text/event-stream" in response.headers["content-type"]

@@ -18,31 +18,41 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
+
 def get_free_port():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind(('', 0))
+    s.bind(("", 0))
     port = s.getsockname()[1]
     s.close()
     return port
 
+
 @celery_app.task(bind=True, name="run_deployment_server")
 def run_deployment_server(self, deployment_id: str):
     logger.info(f"Starting deployment worker for {deployment_id}")
-    
+
     db = SessionLocal()
     service = DeploymentService(db)
-    
+
     try:
         deployment = db.query(Deployment).filter(Deployment.id == deployment_id).first()
         if not deployment or deployment.status == "cancelled":
             return False
-            
+
         deployment.status = "starting"
         db.commit()
-        service.log_event(deployment_id, "deployment.starting", {"message": "Acquired worker. Starting server..."})
+        service.log_event(
+            deployment_id,
+            "deployment.starting",
+            {"message": "Acquired worker. Starting server..."},
+        )
 
         # Fetch model version metadata
-        model_version = db.query(ModelVersion).filter(ModelVersion.id == deployment.model_version_id).first()
+        model_version = (
+            db.query(ModelVersion)
+            .filter(ModelVersion.id == deployment.model_version_id)
+            .first()
+        )
         if not model_version:
             raise ValueError("Model version not found.")
 
@@ -54,10 +64,10 @@ def run_deployment_server(self, deployment_id: str):
 
         # Start the internal FastAPI server as a subprocess
         env = os.environ.copy()
-        
-        # Configure the server using ENV vars which we can read inside main.py / engine.py if needed, 
+
+        # Configure the server using ENV vars which we can read inside main.py / engine.py if needed,
         # but for now we'll write a small startup script or rely on the server pulling from DB/Args
-        
+
         # We will write a tiny runner script that injects the config and runs uvicorn
         runner_code = f"""
 import asyncio
@@ -90,10 +100,14 @@ if __name__ == "__main__":
 
         deployment.status = "loading"
         db.commit()
-        service.log_event(deployment_id, "deployment.loading", {"message": "Loading model and weights into memory."})
+        service.log_event(
+            deployment_id,
+            "deployment.loading",
+            {"message": "Loading model and weights into memory."},
+        )
 
         import sys
-        
+
         # Start Process using the same python interpreter (from the venv)
         process = subprocess.Popen(
             [sys.executable, runner_path],
@@ -101,23 +115,23 @@ if __name__ == "__main__":
             stderr=subprocess.STDOUT,
             text=True,
             bufsize=1,
-            env=env
+            env=env,
         )
 
         redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
         pubsub = redis_client.pubsub()
         pubsub.subscribe(f"forgellm:deployment_control:{deployment_id}")
-        
+
         # Wait for ready
         is_ready = False
         start_time = time.time()
-        timeout = 900 # 15 minutes to load model (could be downloading)
-        
+        timeout = 900  # 15 minutes to load model (could be downloading)
+
         while time.time() - start_time < timeout:
             # Check for stop signal
             message = pubsub.get_message(ignore_subscribe_messages=True)
-            if message and message['data']:
-                data = json.loads(message['data'])
+            if message and message["data"]:
+                data = json.loads(message["data"])
                 if data.get("command") == "stop":
                     logger.info("Received stop signal during load")
                     process.terminate()
@@ -131,7 +145,9 @@ if __name__ == "__main__":
             if process.poll() is not None:
                 output = process.stdout.read()
                 logger.error(f"Server process crashed. Output:\n{output}")
-                raise RuntimeError(f"Server process crashed with exit code {process.returncode}\n{output[-500:]}")
+                raise RuntimeError(
+                    f"Server process crashed with exit code {process.returncode}\n{output[-500:]}"
+                )
 
             try:
                 resp = httpx.get(f"http://localhost:{port}/ready", timeout=1.0)
@@ -140,27 +156,33 @@ if __name__ == "__main__":
                     break
             except httpx.RequestError:
                 pass
-                
+
             time.sleep(2)
-            
+
         if not is_ready:
             process.terminate()
             output = process.stdout.read()
             logger.error(f"Model loading timed out. Output:\n{output}")
-            raise RuntimeError(f"Model loading timed out after {timeout}s.\n{output[-500:]}")
+            raise RuntimeError(
+                f"Model loading timed out after {timeout}s.\n{output[-500:]}"
+            )
 
         # Mark ready
         deployment.status = "ready"
         deployment.health_status = "healthy"
         deployment.started_at = datetime.utcnow()
         db.commit()
-        service.log_event(deployment_id, "deployment.ready", {"message": "Deployment is ready and accepting traffic."})
+        service.log_event(
+            deployment_id,
+            "deployment.ready",
+            {"message": "Deployment is ready and accepting traffic."},
+        )
 
         # Main health check loop
         while True:
             message = pubsub.get_message(ignore_subscribe_messages=True)
-            if message and message['data']:
-                data = json.loads(message['data'])
+            if message and message["data"]:
+                data = json.loads(message["data"])
                 if data.get("command") == "stop":
                     logger.info("Received stop signal")
                     break
@@ -170,7 +192,11 @@ if __name__ == "__main__":
                 deployment.status = "failed"
                 deployment.error_message = "Process died unexpectedly"
                 db.commit()
-                service.log_event(deployment_id, "deployment.failed", {"message": "Process died unexpectedly."})
+                service.log_event(
+                    deployment_id,
+                    "deployment.failed",
+                    {"message": "Process died unexpectedly."},
+                )
                 return False
 
             try:
@@ -187,7 +213,7 @@ if __name__ == "__main__":
                 if deployment.health_status != "unhealthy":
                     deployment.health_status = "unhealthy"
                     db.commit()
-                    
+
             time.sleep(5)
 
         # Cleanup
@@ -196,14 +222,18 @@ if __name__ == "__main__":
             process.wait(timeout=5)
         except subprocess.TimeoutExpired:
             process.kill()
-            
+
         if os.path.exists(runner_path):
             os.remove(runner_path)
-            
+
         deployment.status = "stopped"
         deployment.stopped_at = datetime.utcnow()
         db.commit()
-        service.log_event(deployment_id, "deployment.stopped", {"message": "Deployment stopped successfully."})
+        service.log_event(
+            deployment_id,
+            "deployment.stopped",
+            {"message": "Deployment stopped successfully."},
+        )
         return True
 
     except Exception as e:
@@ -214,6 +244,6 @@ if __name__ == "__main__":
             db.commit()
             service.log_event(deployment_id, "deployment.failed", {"message": str(e)})
         return False
-        
+
     finally:
         db.close()

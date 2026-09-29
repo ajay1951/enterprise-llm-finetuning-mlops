@@ -2,6 +2,7 @@ from pydantic import BaseModel, ConfigDict
 from typing import Optional, Dict, Any, Union, List
 from datetime import datetime
 
+
 class BaseEvent(BaseModel):
     event_id: str
     event_type: str
@@ -11,6 +12,7 @@ class BaseEvent(BaseModel):
     data: Dict[str, Any] = {}
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class MetricData(BaseModel):
     step: int
@@ -22,13 +24,16 @@ class MetricData(BaseModel):
     elapsed_time: Optional[float] = None
     estimated_remaining_time: Optional[float] = None
 
+
 class LogData(BaseModel):
-    level: str # INFO, DEBUG, WARNING, ERROR
+    level: str  # INFO, DEBUG, WARNING, ERROR
     message: str
+
 
 class JobStatusData(BaseModel):
     status: str
     error_message: Optional[str] = None
+
 
 # Worker models (not part of job stream, but used generally)
 class GPUMetric(BaseModel):
@@ -38,6 +43,7 @@ class GPUMetric(BaseModel):
     memory_total_gb: float
     temperature: float
     power_usage_w: float
+
 
 class WorkerHeartbeat(BaseModel):
     worker_id: str

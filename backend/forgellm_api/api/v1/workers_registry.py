@@ -5,21 +5,31 @@ from datetime import datetime
 
 from backend.forgellm_api.db.session import get_db
 from backend.forgellm_api.db.models.worker import Worker, WorkerGPU
-from backend.forgellm_api.schemas.worker import WorkerRegisterRequest, WorkerHeartbeatRequest, WorkerResponse
+from backend.forgellm_api.schemas.worker import (
+    WorkerRegisterRequest,
+    WorkerHeartbeatRequest,
+    WorkerResponse,
+)
 from backend.forgellm_api.core.config import get_settings
 
 router = APIRouter(tags=["Worker Registry"])
 settings = get_settings()
+
 
 def verify_worker_token(x_worker_token: Optional[str] = Header(None)):
     expected_token = getattr(settings, "WORKER_TOKEN", "default-insecure-worker-token")
     if not x_worker_token or x_worker_token != expected_token:
         raise HTTPException(status_code=401, detail="Invalid or missing worker token")
 
-@router.post("/workers/register", response_model=WorkerResponse, dependencies=[Depends(verify_worker_token)])
+
+@router.post(
+    "/workers/register",
+    response_model=WorkerResponse,
+    dependencies=[Depends(verify_worker_token)],
+)
 def register_worker(req: WorkerRegisterRequest, db: Session = Depends(get_db)):
     worker = db.query(Worker).filter(Worker.worker_id == req.worker_id).first()
-    
+
     if worker:
         worker.status = "ONLINE"
         worker.last_heartbeat = datetime.utcnow()
@@ -34,16 +44,22 @@ def register_worker(req: WorkerRegisterRequest, db: Session = Depends(get_db)):
         worker.region = req.region
         worker.zone = req.zone
         worker.metadata_json = req.metadata_json
-        
+
         # Update GPUs
         for g in req.gpus:
-            gpu_rec = db.query(WorkerGPU).filter(WorkerGPU.worker_id == worker.id, WorkerGPU.uuid == g.uuid).first()
+            gpu_rec = (
+                db.query(WorkerGPU)
+                .filter(WorkerGPU.worker_id == worker.id, WorkerGPU.uuid == g.uuid)
+                .first()
+            )
             if not gpu_rec:
-                gpu_rec = WorkerGPU(worker_id=worker.id, uuid=g.uuid, gpu_index=g.gpu_index, name=g.name)
+                gpu_rec = WorkerGPU(
+                    worker_id=worker.id, uuid=g.uuid, gpu_index=g.gpu_index, name=g.name
+                )
                 db.add(gpu_rec)
             gpu_rec.memory_total = g.memory_total
             gpu_rec.status = g.status or "AVAILABLE"
-            
+
     else:
         worker = Worker(
             worker_id=req.worker_id,
@@ -59,11 +75,11 @@ def register_worker(req: WorkerRegisterRequest, db: Session = Depends(get_db)):
             region=req.region,
             zone=req.zone,
             metadata_json=req.metadata_json,
-            last_heartbeat=datetime.utcnow()
+            last_heartbeat=datetime.utcnow(),
         )
         db.add(worker)
         db.flush()
-        
+
         for g in req.gpus:
             gpu_rec = WorkerGPU(
                 worker_id=worker.id,
@@ -71,7 +87,7 @@ def register_worker(req: WorkerRegisterRequest, db: Session = Depends(get_db)):
                 gpu_index=g.gpu_index,
                 name=g.name,
                 memory_total=g.memory_total,
-                status=g.status or "AVAILABLE"
+                status=g.status or "AVAILABLE",
             )
             db.add(gpu_rec)
 
@@ -79,19 +95,28 @@ def register_worker(req: WorkerRegisterRequest, db: Session = Depends(get_db)):
     db.refresh(worker)
     return worker
 
-@router.post("/workers/{worker_id}/heartbeat", dependencies=[Depends(verify_worker_token)])
-def worker_heartbeat(worker_id: str, req: WorkerHeartbeatRequest, db: Session = Depends(get_db)):
+
+@router.post(
+    "/workers/{worker_id}/heartbeat", dependencies=[Depends(verify_worker_token)]
+)
+def worker_heartbeat(
+    worker_id: str, req: WorkerHeartbeatRequest, db: Session = Depends(get_db)
+):
     worker = db.query(Worker).filter(Worker.worker_id == worker_id).first()
     if not worker:
         raise HTTPException(status_code=404, detail="Worker not found")
-        
+
     worker.last_heartbeat = datetime.utcnow()
     worker.status = req.status
     worker.ram_available = req.ram_available
-    
+
     # Update GPU telemetry
     for g in req.gpus:
-        gpu_rec = db.query(WorkerGPU).filter(WorkerGPU.worker_id == worker.id, WorkerGPU.uuid == g.uuid).first()
+        gpu_rec = (
+            db.query(WorkerGPU)
+            .filter(WorkerGPU.worker_id == worker.id, WorkerGPU.uuid == g.uuid)
+            .first()
+        )
         if gpu_rec:
             gpu_rec.memory_used = g.memory_used
             gpu_rec.utilization = g.utilization
@@ -99,9 +124,10 @@ def worker_heartbeat(worker_id: str, req: WorkerHeartbeatRequest, db: Session = 
             gpu_rec.power = g.power
             gpu_rec.status = g.status or gpu_rec.status
             gpu_rec.current_job_id = g.current_job_id
-            
+
     db.commit()
     return {"status": "ok"}
+
 
 @router.post("/workers/{worker_id}/drain")
 def drain_worker(worker_id: str, db: Session = Depends(get_db)):
@@ -109,13 +135,14 @@ def drain_worker(worker_id: str, db: Session = Depends(get_db)):
     if not worker:
         raise HTTPException(status_code=404, detail="Worker not found")
     worker.status = "DRAINING"
-    
+
     for gpu in worker.gpus:
         if gpu.status == "AVAILABLE":
             gpu.status = "DRAINING"
-            
+
     db.commit()
     return {"status": "draining"}
+
 
 @router.post("/workers/{worker_id}/enable")
 def enable_worker(worker_id: str, db: Session = Depends(get_db)):
@@ -123,17 +150,19 @@ def enable_worker(worker_id: str, db: Session = Depends(get_db)):
     if not worker:
         raise HTTPException(status_code=404, detail="Worker not found")
     worker.status = "ONLINE"
-    
+
     for gpu in worker.gpus:
         if gpu.status == "DRAINING":
             gpu.status = "AVAILABLE"
-            
+
     db.commit()
     return {"status": "online"}
+
 
 @router.get("/workers", response_model=List[WorkerResponse])
 def list_workers(db: Session = Depends(get_db)):
     return db.query(Worker).all()
+
 
 @router.get("/workers/{worker_id}", response_model=WorkerResponse)
 def get_worker(worker_id: str, db: Session = Depends(get_db)):
@@ -142,6 +171,7 @@ def get_worker(worker_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Worker not found")
     return worker
 
+
 @router.delete("/workers/{worker_id}")
 def delete_worker(worker_id: str, db: Session = Depends(get_db)):
     worker = db.query(Worker).filter(Worker.worker_id == worker_id).first()
@@ -149,6 +179,7 @@ def delete_worker(worker_id: str, db: Session = Depends(get_db)):
         db.delete(worker)
         db.commit()
     return {"status": "success"}
+
 
 @router.get("/gpus")
 def list_gpus(db: Session = Depends(get_db)):

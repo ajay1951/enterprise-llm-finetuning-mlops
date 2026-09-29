@@ -2,8 +2,10 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 
+
 class OrganizationCreate(BaseModel):
     name: str
+
 
 class OrganizationResponse(BaseModel):
     id: str
@@ -14,6 +16,7 @@ class OrganizationResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
 
 class OrganizationMemberResponse(BaseModel):
     id: str

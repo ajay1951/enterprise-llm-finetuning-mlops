@@ -8,8 +8,10 @@ from backend.forgellm_api.core.config import get_settings
 
 settings = get_settings()
 
+
 class ArtifactStorageError(Exception):
     pass
+
 
 class ArtifactStorage:
     def upload(self, local_path: str, destination_uri: str) -> str:
@@ -34,6 +36,7 @@ class ArtifactStorage:
                 sha256_hash.update(byte_block)
         return sha256_hash.hexdigest()
 
+
 class LocalStorage(ArtifactStorage):
     def __init__(self, base_dir: str = "/tmp/forgellm_storage"):
         self.base_dir = base_dir
@@ -47,6 +50,7 @@ class LocalStorage(ArtifactStorage):
 
     def upload(self, local_path: str, destination_uri: str) -> str:
         import shutil
+
         dest = self._resolve_path(destination_uri)
         os.makedirs(os.path.dirname(dest), exist_ok=True)
         shutil.copy2(local_path, dest)
@@ -54,6 +58,7 @@ class LocalStorage(ArtifactStorage):
 
     def download(self, uri: str, local_path: str) -> str:
         import shutil
+
         src = self._resolve_path(uri)
         if not os.path.exists(src):
             raise ArtifactStorageError(f"File not found: {uri}")
@@ -73,6 +78,7 @@ class LocalStorage(ArtifactStorage):
         # Simple mock list
         return []
 
+
 class S3Storage(ArtifactStorage):
     def __init__(self):
         try:
@@ -80,19 +86,19 @@ class S3Storage(ArtifactStorage):
             from botocore.client import Config
         except ImportError:
             raise ArtifactStorageError("boto3 is required for S3Storage")
-            
+
         self.bucket = settings.STORAGE_BUCKET
-        
+
         s3_kwargs = {}
-        if hasattr(settings, 'S3_ENDPOINT_URL') and settings.S3_ENDPOINT_URL:
-            s3_kwargs['endpoint_url'] = settings.S3_ENDPOINT_URL
-            
+        if hasattr(settings, "S3_ENDPOINT_URL") and settings.S3_ENDPOINT_URL:
+            s3_kwargs["endpoint_url"] = settings.S3_ENDPOINT_URL
+
         self.s3 = boto3.client(
-            's3',
-            aws_access_key_id=getattr(settings, 'S3_ACCESS_KEY', 'minioadmin'),
-            aws_secret_access_key=getattr(settings, 'S3_SECRET_KEY', 'minioadmin'),
-            config=Config(signature_version='s3v4'),
-            **s3_kwargs
+            "s3",
+            aws_access_key_id=getattr(settings, "S3_ACCESS_KEY", "minioadmin"),
+            aws_secret_access_key=getattr(settings, "S3_SECRET_KEY", "minioadmin"),
+            config=Config(signature_version="s3v4"),
+            **s3_kwargs,
         )
 
     def _get_key(self, uri: str) -> str:
@@ -124,15 +130,16 @@ class S3Storage(ArtifactStorage):
 
     def list(self, prefix: str) -> List[str]:
         key_prefix = self._get_key(prefix)
-        paginator = self.s3.get_paginator('list_objects_v2')
+        paginator = self.s3.get_paginator("list_objects_v2")
         pages = paginator.paginate(Bucket=self.bucket, Prefix=key_prefix)
-        
+
         results = []
         for page in pages:
-            if 'Contents' in page:
-                for obj in page['Contents']:
+            if "Contents" in page:
+                for obj in page["Contents"]:
                     results.append(f"s3://{self.bucket}/{obj['Key']}")
         return results
+
 
 def get_storage() -> ArtifactStorage:
     provider = getattr(settings, "STORAGE_PROVIDER", "local")

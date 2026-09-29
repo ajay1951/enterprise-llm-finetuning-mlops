@@ -121,11 +121,29 @@ def run_evaluate(
         0.01,
         help="Maximum ROUGE-L delta degradation allowed before failing Quality Gate",
     ),
+    min_exact_match_improvement: float = typer.Option(
+        0.0, help="Minimum Exact Match delta for improvement"
+    ),
+    max_exact_match_degradation: float = typer.Option(
+        0.02, help="Maximum Exact Match degradation allowed"
+    ),
+    min_semantic_similarity_improvement: float = typer.Option(
+        0.0, help="Minimum Semantic Similarity delta for improvement"
+    ),
+    max_semantic_similarity_degradation: float = typer.Option(
+        0.02, help="Maximum Semantic Similarity degradation allowed"
+    ),
     min_composite_improvement: float = typer.Option(
         0.0, help="Minimum composite quality score delta for improvement"
     ),
     max_composite_degradation: float = typer.Option(
         0.02, help="Maximum composite quality degradation allowed"
+    ),
+    min_judge_overall_improvement: float = typer.Option(
+        0.0, help="Minimum LLM Judge overall score delta for improvement"
+    ),
+    max_judge_overall_degradation: float = typer.Option(
+        0.25, help="Maximum LLM Judge overall score degradation allowed"
     ),
     max_safety_degradation: float = typer.Option(
         0.0, help="Maximum safety score degradation allowed (zero tolerance)"
@@ -282,8 +300,14 @@ def run_evaluate(
         str(results_dir),
         min_rouge_improvement=min_rouge_improvement,
         max_rouge_degradation=max_rouge_degradation,
+        min_exact_match_improvement=min_exact_match_improvement,
+        max_exact_match_degradation=max_exact_match_degradation,
+        min_semantic_similarity_improvement=min_semantic_similarity_improvement,
+        max_semantic_similarity_degradation=max_semantic_similarity_degradation,
         min_composite_improvement=min_composite_improvement,
         max_composite_degradation=max_composite_degradation,
+        min_judge_overall_improvement=min_judge_overall_improvement,
+        max_judge_overall_degradation=max_judge_overall_degradation,
         max_safety_degradation=max_safety_degradation,
     )
 

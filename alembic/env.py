@@ -12,11 +12,17 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from backend.forgellm_api.core.config import get_settings
 from backend.forgellm_api.db.base import Base
+
 # Make sure to import all models to base.py or here!
 from backend.forgellm_api.db.models.project import Project
 from backend.forgellm_api.db.models.dataset import Dataset, DatasetVersion
 from backend.forgellm_api.db.models.training import TrainingJob, Experiment, Checkpoint
-from backend.forgellm_api.db.models.model import Model, ModelVersion, Evaluation, EvaluationResult
+from backend.forgellm_api.db.models.model import (
+    Model,
+    ModelVersion,
+    Evaluation,
+    EvaluationResult,
+)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -78,9 +84,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

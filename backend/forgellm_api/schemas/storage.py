@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 
+
 class ArtifactResponse(BaseModel):
     id: str
     project_id: str
@@ -15,6 +16,7 @@ class ArtifactResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
 
 class ArtifactManifestResponse(BaseModel):
     id: str

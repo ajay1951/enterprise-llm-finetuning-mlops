@@ -1,9 +1,11 @@
 from pydantic import BaseModel
 from typing import List, Dict, Optional, Any
 
+
 class ChatMessage(BaseModel):
     role: str
     content: str
+
 
 class ChatCompletionRequest(BaseModel):
     model: str
@@ -13,6 +15,7 @@ class ChatCompletionRequest(BaseModel):
     max_tokens: Optional[int] = 512
     stream: Optional[bool] = False
 
+
 class CompletionRequest(BaseModel):
     model: str
     prompt: str
@@ -21,10 +24,12 @@ class CompletionRequest(BaseModel):
     max_tokens: Optional[int] = 512
     stream: Optional[bool] = False
 
+
 class ChatCompletionResponseChoice(BaseModel):
     index: int
     message: ChatMessage
     finish_reason: str
+
 
 class ChatCompletionResponse(BaseModel):
     id: str

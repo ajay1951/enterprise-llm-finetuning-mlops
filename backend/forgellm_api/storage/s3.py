@@ -7,17 +7,19 @@ from backend.forgellm_api.storage.base import StorageBackend
 
 logger = logging.getLogger(__name__)
 
+
 class S3StorageBackend(StorageBackend):
     """
     S3 Storage Backend compatible with AWS S3 and MinIO (for local dev).
     """
+
     def __init__(self):
         self.endpoint_url = os.environ.get("S3_ENDPOINT_URL", "http://localhost:9000")
         self.access_key = os.environ.get("S3_ACCESS_KEY", "minioadmin")
         self.secret_key = os.environ.get("S3_SECRET_KEY", "minioadmin")
         self.bucket_name = os.environ.get("S3_BUCKET_NAME", "forgellm-models")
-        
-        # If running in production on AWS, these env vars might not be set, 
+
+        # If running in production on AWS, these env vars might not be set,
         # so boto3 will fallback to IAM roles. For local dev, we point to MinIO.
         client_kwargs = {}
         if os.environ.get("USE_LOCAL_S3", "true").lower() == "true":
@@ -26,8 +28,8 @@ class S3StorageBackend(StorageBackend):
                 "aws_access_key_id": self.access_key,
                 "aws_secret_access_key": self.secret_key,
             }
-            
-        self.s3_client = boto3.client('s3', **client_kwargs)
+
+        self.s3_client = boto3.client("s3", **client_kwargs)
         self._ensure_bucket()
 
     def _ensure_bucket(self):

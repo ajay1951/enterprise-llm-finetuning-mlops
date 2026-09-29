@@ -6,6 +6,7 @@ from backend.forgellm_api.core.config import get_settings
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
+
 class RedisEventBus:
     def __init__(self):
         self.redis_url = settings.REDIS_URL
@@ -38,5 +39,6 @@ class RedisEventBus:
         channel = self.get_channel(job_id)
         await pubsub.subscribe(channel)
         return pubsub
+
 
 redis_bus = RedisEventBus()

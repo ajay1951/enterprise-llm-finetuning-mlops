@@ -15,6 +15,7 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
+
 class WorkerHeartbeatThread(threading.Thread):
     def __init__(self, interval=15):
         super().__init__(daemon=True)
@@ -41,9 +42,9 @@ class WorkerHeartbeatThread(threading.Thread):
     def _send_heartbeat(self):
         gpu_metrics = gpu_monitor.get_metrics()
         sys_metrics = sys_monitor.get_metrics()
-        
+
         status = "busy" if self.active_job_id else "idle"
-        
+
         # Publish transient heartbeat to redis pubsub
         heartbeat_data = {
             "event_type": "worker.heartbeat",
@@ -54,10 +55,12 @@ class WorkerHeartbeatThread(threading.Thread):
             "cpu_percent": sys_metrics.get("cpu_percent"),
             "ram_used_gb": sys_metrics.get("ram_used_gb"),
             "gpu_metrics": gpu_metrics,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
-        
-        self.redis_client.publish("forgellm:workers:heartbeat", json.dumps(heartbeat_data))
+
+        self.redis_client.publish(
+            "forgellm:workers:heartbeat", json.dumps(heartbeat_data)
+        )
 
         # Also persist latest state to DB so the dashboard has immediate state on reload
         db = SessionLocal()
@@ -67,18 +70,18 @@ class WorkerHeartbeatThread(threading.Thread):
                 worker = Worker(id=self.worker_id)
                 db.add(worker)
                 db.flush()
-            
+
             worker.status = status
             worker.last_heartbeat = datetime.utcnow()
             worker.gpu_count = len(gpu_metrics)
             worker.ram_total_gb = sys_metrics.get("ram_total_gb")
             worker.active_job_id = self.active_job_id
-            
+
             metric = WorkerMetric(
                 worker_id=self.worker_id,
                 cpu_percent=sys_metrics.get("cpu_percent"),
                 ram_used_gb=sys_metrics.get("ram_used_gb"),
-                gpu_metrics=gpu_metrics
+                gpu_metrics=gpu_metrics,
             )
             db.add(metric)
             db.commit()
@@ -87,6 +90,7 @@ class WorkerHeartbeatThread(threading.Thread):
             db.rollback()
         finally:
             db.close()
+
 
 # Global instance for the worker process
 heartbeat_thread = WorkerHeartbeatThread()

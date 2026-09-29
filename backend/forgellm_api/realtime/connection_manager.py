@@ -5,6 +5,7 @@ import asyncio
 
 logger = logging.getLogger(__name__)
 
+
 class ConnectionManager:
     def __init__(self):
         # job_id -> list of active websockets
@@ -17,7 +18,9 @@ class ConnectionManager:
             if job_id not in self.active_connections:
                 self.active_connections[job_id] = []
             self.active_connections[job_id].append(websocket)
-        logger.info(f"Client connected to job {job_id}. Total clients for job: {len(self.active_connections[job_id])}")
+        logger.info(
+            f"Client connected to job {job_id}. Total clients for job: {len(self.active_connections[job_id])}"
+        )
 
     async def disconnect(self, websocket: WebSocket, job_id: str):
         async with self.lock:
@@ -38,5 +41,6 @@ class ConnectionManager:
                 except Exception as e:
                     logger.warning(f"Error sending to websocket: {e}")
                     await self.disconnect(connection, job_id)
+
 
 manager = ConnectionManager()

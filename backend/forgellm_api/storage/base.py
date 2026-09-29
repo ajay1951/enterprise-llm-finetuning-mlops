@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import BinaryIO, Optional
 
+
 class StorageInterface(ABC):
     @abstractmethod
     def save(self, path: str, content: BinaryIO) -> str:
@@ -21,7 +22,7 @@ class StorageInterface(ABC):
     def exists(self, path: str) -> bool:
         """Check if content exists in storage."""
         pass
-        
+
     @abstractmethod
     def get_metadata(self, path: str) -> dict:
         """Get file metadata like size and modified time."""

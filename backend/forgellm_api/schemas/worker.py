@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 
+
 class GPUInfo(BaseModel):
     gpu_index: int
     uuid: str
@@ -13,6 +14,7 @@ class GPUInfo(BaseModel):
     power: float = 0.0
     status: Optional[str] = "AVAILABLE"
     current_job_id: Optional[str] = None
+
 
 class WorkerRegisterRequest(BaseModel):
     worker_id: str
@@ -29,11 +31,13 @@ class WorkerRegisterRequest(BaseModel):
     zone: Optional[str] = None
     metadata_json: Optional[Dict[str, Any]] = None
 
+
 class WorkerHeartbeatRequest(BaseModel):
     status: str
     ram_available: float
     gpus: List[GPUInfo] = []
     active_jobs: List[str] = []
+
 
 class WorkerResponse(BaseModel):
     id: str
@@ -54,7 +58,9 @@ class WorkerResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class GPUInfoConfig:
     pass
+
 
 GPUInfo.model_config = {"from_attributes": True}
