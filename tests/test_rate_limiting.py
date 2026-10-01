@@ -14,8 +14,8 @@ def mock_redis():
 
 @pytest.mark.asyncio
 async def test_rate_limiter_success(mock_redis):
-    pipe_mock = AsyncMock()
-    pipe_mock.execute.return_value = [None, 5, None, None]
+    pipe_mock = MagicMock()
+    pipe_mock.execute = AsyncMock(return_value=[None, 5, None, None])
     pipe_mock.__aenter__.return_value = pipe_mock
     pipe_mock.__aexit__.return_value = None
     mock_redis.pipeline = MagicMock(return_value=pipe_mock)
@@ -33,8 +33,8 @@ async def test_rate_limiter_success(mock_redis):
 
 @pytest.mark.asyncio
 async def test_rate_limiter_exceeded(mock_redis):
-    pipe_mock = AsyncMock()
-    pipe_mock.execute.return_value = [None, 11, None, None]
+    pipe_mock = MagicMock()
+    pipe_mock.execute = AsyncMock(return_value=[None, 11, None, None])
     pipe_mock.__aenter__.return_value = pipe_mock
     pipe_mock.__aexit__.return_value = None
     mock_redis.pipeline = MagicMock(return_value=pipe_mock)

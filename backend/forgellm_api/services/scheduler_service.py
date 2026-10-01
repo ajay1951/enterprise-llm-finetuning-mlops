@@ -1,6 +1,6 @@
 import json
 import time
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import redis.asyncio as redis
 from sqlalchemy.orm import Session
@@ -50,7 +50,7 @@ class ResourceScheduler:
         Implements BEST_FIT scheduling. Finds the GPU with the smallest sufficient VRAM to avoid wasting large GPUs on small jobs.
         """
         # Find healthy online workers that match criteria (not draining, not offline)
-        threshold_time = datetime.utcnow() - timedelta(minutes=5)
+        threshold_time = datetime.now(UTC) - timedelta(minutes=5)
 
         query = db.query(Worker).filter(
             Worker.status == "ONLINE", Worker.last_heartbeat >= threshold_time
@@ -132,7 +132,7 @@ class ResourceScheduler:
                 status="ACTIVE",
                 cpu_cores_reserved=required_cpu,
                 ram_gb_reserved=required_ram_gb,
-                expires_at=datetime.utcnow()
+                expires_at=datetime.now(UTC)
                 + timedelta(days=1),  # arbitrary default timeout
             )
             db.add(reservation)
@@ -166,7 +166,7 @@ class ResourceScheduler:
         )
         for asg in assignments:
             asg.status = "COMPLETED"
-            asg.completed_at = datetime.utcnow()
+            asg.completed_at = datetime.now(UTC)
 
         db.commit()
 

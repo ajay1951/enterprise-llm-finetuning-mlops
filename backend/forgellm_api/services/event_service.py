@@ -1,7 +1,7 @@
 import json
 import logging
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 
 import redis
 from sqlalchemy.orm import Session
@@ -34,7 +34,7 @@ class EventService:
         self, db: Session, job_id: str, event_type: str, sequence: int, data: dict
     ):
         event_id = str(uuid.uuid4())
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
 
         # 1. Persist to DB
         job_event = JobEvent(
@@ -69,7 +69,7 @@ class EventService:
         persist: bool = False,
     ):
         event_id = str(uuid.uuid4())
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
 
         if persist:
             metric = TrainingMetric(
@@ -102,7 +102,7 @@ class EventService:
         self, db: Session, job_id: str, sequence: int, level: str, message: str
     ):
         event_id = str(uuid.uuid4())
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
 
         log_entry = TrainingLog(
             id=event_id,
