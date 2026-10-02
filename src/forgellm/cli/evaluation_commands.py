@@ -3,7 +3,6 @@ import os
 from pathlib import Path
 from typing import Optional
 
-import mlflow
 import torch
 import typer
 from rich.console import Console
@@ -196,6 +195,8 @@ def run_evaluate(
         console.print(
             "[yellow]Warning: --judge requested but judge provider is not configured. Running objective metrics only.[/yellow]"
         )
+
+    import mlflow
 
     mlflow.set_tracking_uri("http://localhost:5000")
     mlflow.set_experiment("ForgeLLM_FineTuning_Evaluation")

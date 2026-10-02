@@ -76,8 +76,9 @@ jobs:
           python -m pip install --upgrade pip
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           pip install -r requirements.txt
-          pip install pytest pytest-cov pytest-asyncio httpx2
+          pip install pytest pytest-cov pytest-asyncio httpx
           pip install -e .
+
           
       - name: Run Test Suite
         env:
@@ -139,8 +140,9 @@ jobs:
           python -m pip install --upgrade pip
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           pip install -r requirements.txt
-          pip install pytest pytest-cov pytest-asyncio httpx2
+          pip install pytest pytest-cov pytest-asyncio httpx
           pip install -e .
+
           
       - name: Start MLflow Background Service
         run: |

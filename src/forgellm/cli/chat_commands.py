@@ -1,7 +1,6 @@
 import os
 
 import typer
-from peft import PeftModel
 from rich.console import Console
 
 from forgellm.inference.generator import ForgeGenerator
@@ -58,6 +57,8 @@ def run_chat(
     )
 
     base_model = loader.load_model(quantization_config=q_config)
+    from peft import PeftModel
+
     model = PeftModel.from_pretrained(base_model, adapter_path)
 
     generator = ForgeGenerator(model, tokenizer)

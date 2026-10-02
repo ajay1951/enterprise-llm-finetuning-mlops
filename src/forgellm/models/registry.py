@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -47,7 +47,7 @@ class ModelRegistry:
             "method": method,
             "dataset": dataset_ref,
             "experiment": experiment_id,
-            "created_at": datetime.utcnow().isoformat() + "Z",
+            "created_at": datetime.now(UTC).isoformat(),
             "status": status,
             "location": str(version_dir),
         }

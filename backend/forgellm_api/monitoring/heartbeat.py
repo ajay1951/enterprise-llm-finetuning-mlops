@@ -4,7 +4,7 @@ import os
 import socket
 import threading
 import time
-from datetime import datetime
+from datetime import UTC, datetime
 
 import redis
 
@@ -68,7 +68,7 @@ class WorkerHeartbeatThread(threading.Thread):
             "cpu_percent": sys_metrics.get("cpu_percent"),
             "ram_used_gb": sys_metrics.get("ram_used_gb"),
             "gpu_metrics": gpu_metrics,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
         self.redis_client.publish(
@@ -85,7 +85,8 @@ class WorkerHeartbeatThread(threading.Thread):
                 db.flush()
 
             worker.status = status
-            worker.last_heartbeat = datetime.utcnow()
+            worker.last_heartbeat = datetime.now(UTC)
+
             worker.gpu_count = len(gpu_metrics)
             worker.ram_total_gb = sys_metrics.get("ram_total_gb")
             worker.active_job_id = self.active_job_id

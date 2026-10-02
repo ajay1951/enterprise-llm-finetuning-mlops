@@ -1,5 +1,5 @@
 from dataclasses import asdict, dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -11,7 +11,7 @@ class ExperimentMetadata:
     dataset_version: str
     method: str
     status: str
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     duration_seconds: float | None = None
     git_commit: str = "unknown"
     python_version: str = "unknown"

@@ -39,7 +39,7 @@ class ForgeTrainer:
     def _save_run_metadata(self):
         os.makedirs(self.config.training.output_dir, exist_ok=True)
         metadata = {
-            "timestamp": datetime.datetime.utcnow().isoformat(),
+            "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
             "git_commit": self._get_git_commit(),
             "config": self.config.model_dump(),
         }

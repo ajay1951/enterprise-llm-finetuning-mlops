@@ -22,35 +22,38 @@
 
 ## 🏗️ Architecture
 
+```mermaid
+graph TD
+    User["Developer / Data Scientist"] --> CLI["Forge CLI (`forge`)"]
+    User --> UI["Next.js Web Dashboard (Port 3000)"]
+    
+    UI --> API["FastAPI REST API (Port 8000)"]
+    CLI --> API
+    
+    subgraph Control_Plane ["Control Plane & Orchestration"]
+        API --> DB[(PostgreSQL / SQLite)]
+        API --> Redis[(Redis Message Broker)]
+        Redis --> Workers["Celery Distributed Workers"]
+    end
+    
+    subgraph FineTuning_Engine ["Fine-Tuning & Evaluation Engine"]
+        Workers --> Trainer["ForgeTrainer (PEFT / QLoRA / TRL)"]
+        Trainer --> Evaluator["ForgeEvaluator (Objective + LLM Judge)"]
+        Evaluator --> Gate["Quality & Regression Gate"]
+    end
+    
+    subgraph Storage_Registry ["Tracking & Model Registry"]
+        Trainer --> MLflow["MLflow Tracking (Port 5000)"]
+        Gate --> ModelReg["Model & Artifact Registry"]
+    end
 ```
-                                  +-----------------------+
-                                  |   Next.js Dashboard   | (Port 3000)
-                                  +-----------+-----------+
-                                              |
-                                              v
-+------------------+              +-----------+-----------+
-|    Forge CLI     +------------->|   FastAPI REST API    | (Port 8000)
-+--------+---------+              +-----------+-----------+
-         |                                    |
-         v                                    v
-+--------+---------+              +-----------+-----------+
-| Core SFT Engine  |              |   Celery / Task Queue |
-+--------+---------+              +-----------+-----------+
-         |                                    |
-         +-----------------+------------------+
-                           |
-                           v
-              +------------+------------+
-              | MLflow Tracking & S3    | (Port 5000)
-              | Model Registry          |
-              +-------------------------+
-```
+
 
 ---
 
 ## 🛠️ Stack & Technologies
 
-* **Engine & ML**: Python 3.11+, PyTorch, Transformers, PEFT, BitsAndBytes, TRL, Accelerate, MLflow.
+* **Engine & ML**: Python 3.11 / 3.12, PyTorch, Transformers, PEFT, BitsAndBytes, TRL, Accelerate, MLflow.
 * **Backend**: FastAPI, SQLAlchemy 2.0, Alembic, Pydantic, Celery, Redis, PostgreSQL.
 * **Frontend**: Next.js 14, React, Tailwind CSS, Recharts, Lucide.
 * **CLI & Tooling**: Typer, Rich, Pytest, Ruff, Bandit, Docker, GitHub Actions.
@@ -61,7 +64,8 @@
 
 ### Prerequisites
 
-* Python 3.11+
+* Python 3.11 or 3.12
+
 * Node.js 18+ (for Web Dashboard)
 * CUDA GPU recommended (NVIDIA RTX series or higher); CPU fallback supported.
 

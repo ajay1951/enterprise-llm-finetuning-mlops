@@ -8,25 +8,54 @@ from backend.forgellm_api.db.models.organization import OrganizationMember
 from backend.forgellm_api.db.models.user import APIKey, User
 from backend.forgellm_api.db.session import get_db
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
 
 from backend.forgellm_api.db.models.organization import Organization
 
 
-def get_current_user(db: Session = Depends(get_db)) -> User:
-    # MOCK AUTHENTICATION FOR LOCAL DEV
-    user = db.query(User).filter(User.email == "demo@forgellm.com").first()
-    if not user:
-        user = User(
-            id="usr_demo",
-            email="demo@forgellm.com",
-            password_hash="mock",
-            name="Demo User",
-            status="ACTIVE",
-        )
-        db.add(user)
-        db.commit()
-    return user
+def get_current_user(
+    token: str | None = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+) -> User:
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    if token:
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            user_id: str = payload.get("sub")
+            token_type: str = payload.get("type")
+            if user_id is None or token_type != "access":
+                raise credentials_exception
+        except JWTError:
+            raise credentials_exception
+
+        user = db.query(User).filter(User.id == user_id).first()
+        if user is None:
+            raise credentials_exception
+        return user
+
+    # Development / Testing fallback
+    from backend.forgellm_api.core.config import get_settings
+
+    if get_settings().ENVIRONMENT in ("development", "test"):
+        user = db.query(User).filter(User.email == "demo@forgellm.com").first()
+        if not user:
+            user = User(
+                id="usr_demo",
+                email="demo@forgellm.com",
+                password_hash="$2b$12$e80yq5qFqG8hWf1uC.3u9eK8wz5wPZcK6Y1kQJ6lE0R4c7v.dM2Gy",  # nosec B106
+                name="Demo User",
+                status="ACTIVE",
+            )
+            db.add(user)
+            db.commit()
+        return user
+
+    raise credentials_exception
 
 
 def require_role(allowed_roles: list[str]):
@@ -112,10 +141,7 @@ def verify_api_key(required_scopes: list[str] = None):
 
         now = datetime.datetime.now(datetime.UTC)
 
-        if (
-            api_key.expires_at
-            and api_key.expires_at.replace(tzinfo=datetime.UTC) < now
-        ):
+        if api_key.expires_at and api_key.expires_at.replace(tzinfo=datetime.UTC) < now:
             raise HTTPException(status_code=401, detail="API key expired")
 
         if required_scopes:

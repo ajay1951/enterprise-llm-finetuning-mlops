@@ -2,7 +2,7 @@ import hashlib
 import json
 import os
 import shutil
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -111,7 +111,7 @@ class DatasetRegistry:
             "total_examples": total_examples,
             "training_examples": training_examples,
             "validation_examples": validation_examples,
-            "created_at": datetime.utcnow().isoformat() + "Z",
+            "created_at": datetime.now(UTC).isoformat(),
             "sha256": sha256,
             "seed": seed,
             "train_path": str(registry_train_path),

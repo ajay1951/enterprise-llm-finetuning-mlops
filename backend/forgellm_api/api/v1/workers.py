@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
@@ -34,7 +34,7 @@ def register_worker(req: WorkerRegisterRequest, db: Session = Depends(get_db)):
 
     if worker:
         worker.status = "ONLINE"
-        worker.last_heartbeat = datetime.utcnow()
+        worker.last_heartbeat = datetime.now(UTC)
         worker.hostname = req.hostname
         worker.worker_type = req.worker_type
         worker.cpu_count = req.cpu_count
@@ -77,7 +77,7 @@ def register_worker(req: WorkerRegisterRequest, db: Session = Depends(get_db)):
             region=req.region,
             zone=req.zone,
             metadata_json=req.metadata_json,
-            last_heartbeat=datetime.utcnow(),
+            last_heartbeat=datetime.now(UTC),
         )
         db.add(worker)
         db.flush()
@@ -108,7 +108,8 @@ def worker_heartbeat(
     if not worker:
         raise HTTPException(status_code=404, detail="Worker not found")
 
-    worker.last_heartbeat = datetime.utcnow()
+    worker.last_heartbeat = datetime.now(UTC)
+
     worker.status = req.status
     worker.ram_available = req.ram_available
 

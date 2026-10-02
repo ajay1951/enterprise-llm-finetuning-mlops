@@ -76,12 +76,12 @@ def versions(name: str):
 # MLflow Lifecycle Commands
 # ==========================================
 
-from forgellm.models.mlflow_registry import MLflowModelRegistry
-
 
 @app.command(name="promote")
 def promote_model(model_name: str, version: int):
     """Promote a registered model version to Production in MLflow."""
+    from forgellm.models.mlflow_registry import MLflowModelRegistry
+
     mlflow_registry = MLflowModelRegistry("http://localhost:5000")
     try:
         mlflow_registry.promote_model(model_name, version)
@@ -97,6 +97,8 @@ def promote_model(model_name: str, version: int):
 @app.command(name="rollback")
 def rollback_model(model_name: str, target_version: int):
     """Rollback Production to a specific older version in MLflow."""
+    from forgellm.models.mlflow_registry import MLflowModelRegistry
+
     mlflow_registry = MLflowModelRegistry("http://localhost:5000")
     try:
         mlflow_registry.rollback_model(model_name, target_version)
@@ -112,7 +114,10 @@ def rollback_model(model_name: str, target_version: int):
 @app.command(name="status")
 def model_status(model_name: str):
     """Check the current Production version of a model in MLflow."""
+    from forgellm.models.mlflow_registry import MLflowModelRegistry
+
     mlflow_registry = MLflowModelRegistry("http://localhost:5000")
+
     try:
         prod = mlflow_registry.get_production_version(model_name)
         if prod:

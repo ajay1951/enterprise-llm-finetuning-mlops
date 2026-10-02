@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from backend.forgellm_api.db.models.worker import Worker
 from backend.forgellm_api.db.session import SessionLocal
@@ -13,7 +13,7 @@ async def monitor_workers_health():
     while True:
         try:
             db = SessionLocal()
-            threshold = datetime.utcnow() - timedelta(minutes=5)
+            threshold = datetime.now(UTC) - timedelta(minutes=5)
 
             # Find workers that missed heartbeats
             dead_workers = (

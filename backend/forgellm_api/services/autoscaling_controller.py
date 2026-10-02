@@ -1,6 +1,6 @@
 import asyncio
 import random
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
@@ -38,7 +38,7 @@ class AutoscalingController:
         current_reqs = self.get_current_requests_per_sec(workload.id)
         current_util = self.get_current_gpu_utilization(workload.id)
 
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         last_event = policy.last_scale_event_at or (now - timedelta(days=1))
 
         # Scale UP logic (if traffic > target OR util > target)

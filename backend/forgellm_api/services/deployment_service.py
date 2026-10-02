@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 
 from celery import Celery
 from sqlalchemy.orm import Session
@@ -150,7 +150,7 @@ class DeploymentService:
             "deployment_id": deployment_id,
             "timestamp": event.timestamp.isoformat()
             if event.timestamp
-            else datetime.utcnow().isoformat(),
+            else datetime.now(UTC).isoformat(),
             "sequence": event.sequence,
             "data": data,
         }

@@ -34,9 +34,7 @@ def get_password_hash(password: str) -> str:
     return bcrypt.hashpw(pwd_bytes, salt).decode("utf-8")
 
 
-def create_access_token(
-    subject: str | Any, expires_delta: timedelta = None
-) -> str:
+def create_access_token(subject: str | Any, expires_delta: timedelta = None) -> str:
     if expires_delta:
         expire = datetime.now(UTC) + expires_delta
     else:
@@ -46,9 +44,7 @@ def create_access_token(
     return encoded_jwt
 
 
-def create_refresh_token(
-    subject: str | Any, expires_delta: timedelta = None
-) -> str:
+def create_refresh_token(subject: str | Any, expires_delta: timedelta = None) -> str:
     if expires_delta:
         expire = datetime.now(UTC) + expires_delta
     else:

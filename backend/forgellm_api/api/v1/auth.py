@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from jose import JWTError, jwt
@@ -53,7 +53,7 @@ def login_access_token(user_in: UserLogin, db: Session = Depends(get_db)):
     elif user.status != "ACTIVE":
         raise HTTPException(status_code=400, detail="Inactive user")
 
-    user.last_login_at = datetime.utcnow()
+    user.last_login_at = datetime.now(UTC)
     db.commit()
 
     return {

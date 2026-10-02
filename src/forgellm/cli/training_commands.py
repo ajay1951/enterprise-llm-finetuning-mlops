@@ -10,9 +10,9 @@ from rich.console import Console
 from forgellm.dataset.registry import DatasetRegistry
 from forgellm.experiments.manager import ExperimentManager
 from forgellm.models.registry import ModelRegistry
-from forgellm.training.trainer import ForgeTrainer
 
 app = typer.Typer(help="Model training commands.")
+
 console = Console()
 exp_manager = ExperimentManager()
 model_registry = ModelRegistry()
@@ -148,6 +148,8 @@ def run_train(
             yaml.dump(final_config, f)
 
         console.print("[yellow]Starting training engine...[/yellow]")
+        from forgellm.training.trainer import ForgeTrainer
+
         trainer = ForgeTrainer(str(temp_config))
         trainer.prepare_dataset(ds_info["train_path"], ds_info["val_path"])
         trainer.train()

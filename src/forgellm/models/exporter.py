@@ -2,7 +2,6 @@ import logging
 import os
 
 import torch
-from peft import PeftModel
 
 from forgellm.models.loader import ModelLoader
 from forgellm.models.registry import ModelRegistry
@@ -40,6 +39,8 @@ class ModelExporter:
         base_model = loader.load_model(torch_dtype=torch.float16, device_map="cpu")
 
         logger.info(f"Loading LoRA adapter from: {adapter_path}")
+        from peft import PeftModel
+
         peft_model = PeftModel.from_pretrained(base_model, adapter_path)
 
         logger.info("Merging LoRA weights with base model...")

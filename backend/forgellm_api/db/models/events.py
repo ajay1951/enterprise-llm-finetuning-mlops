@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlalchemy import (
     JSON,
@@ -31,7 +31,9 @@ class JobEvent(Base):
         String, index=True, nullable=False
     )  # e.g. training.started, training.completed
     sequence = Column(Integer, index=True, nullable=False)
-    timestamp = Column(DateTime, default=datetime.utcnow, index=True, nullable=False)
+    timestamp = Column(
+        DateTime, default=lambda: datetime.now(UTC), index=True, nullable=False
+    )
     data = Column(JSON, nullable=True)
 
 
@@ -46,7 +48,7 @@ class TrainingMetric(Base):
         nullable=False,
     )
     sequence = Column(Integer, index=True, nullable=False)
-    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
+    timestamp = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
     step = Column(Integer, nullable=False)
     epoch = Column(Float, nullable=True)
     loss = Column(Float, nullable=True)
@@ -66,7 +68,7 @@ class TrainingLog(Base):
         nullable=False,
     )
     sequence = Column(Integer, index=True, nullable=False)
-    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
+    timestamp = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
     level = Column(String, index=True, nullable=False)  # INFO, DEBUG, WARNING, ERROR
     message = Column(Text, nullable=False)
 
@@ -81,7 +83,10 @@ class WorkerMetric(Base):
         index=True,
         nullable=False,
     )
-    timestamp = Column(DateTime, default=datetime.utcnow, index=True, nullable=False)
+    timestamp = Column(
+        DateTime, default=lambda: datetime.now(UTC), index=True, nullable=False
+    )
+
     cpu_percent = Column(Float, nullable=True)
     ram_used_gb = Column(Float, nullable=True)
     gpu_metrics = Column(

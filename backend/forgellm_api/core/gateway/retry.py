@@ -33,9 +33,7 @@ async def with_retry_and_fallback(
             # Transient networking errors
             retries += 1
             if retries > max_retries:
-                logger.warning(
-                    f"Operation failed after {max_retries} retries: {e!s}"
-                )
+                logger.warning(f"Operation failed after {max_retries} retries: {e!s}")
                 break
 
             delay = base_delay * (2 ** (retries - 1))

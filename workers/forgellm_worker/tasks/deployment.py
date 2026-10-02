@@ -5,7 +5,7 @@ import os
 import socket
 import subprocess
 import time
-from datetime import datetime
+from datetime import UTC, datetime
 
 import httpx
 import redis
@@ -138,7 +138,7 @@ if __name__ == "__main__":
                     logger.info("Received stop signal during load")
                     process.terminate()
                     deployment.status = "stopped"
-                    deployment.stopped_at = datetime.utcnow()
+                    deployment.stopped_at = datetime.now(UTC)
                     db.commit()
                     return True
 
@@ -172,7 +172,7 @@ if __name__ == "__main__":
         # Mark ready
         deployment.status = "ready"
         deployment.health_status = "healthy"
-        deployment.started_at = datetime.utcnow()
+        deployment.started_at = datetime.now(UTC)
         db.commit()
         service.log_event(
             deployment_id,
@@ -229,7 +229,8 @@ if __name__ == "__main__":
             os.remove(runner_path)
 
         deployment.status = "stopped"
-        deployment.stopped_at = datetime.utcnow()
+        deployment.stopped_at = datetime.now(UTC)
+
         db.commit()
         service.log_event(
             deployment_id,

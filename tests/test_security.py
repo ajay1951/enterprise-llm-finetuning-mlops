@@ -56,3 +56,48 @@ def test_organization_member_roles():
         organization_id=org.id, user_id=user.id, role="DEVELOPER"
     )
     assert member.role == "DEVELOPER"
+
+
+def test_get_current_user_with_valid_jwt():
+    from unittest.mock import MagicMock
+
+    from backend.forgellm_api.api.dependencies.auth import get_current_user
+
+    user_id = "user-jwt-123"
+    token = create_access_token(user_id)
+
+    db = MagicMock()
+    mock_user = User(id=user_id, email="jwtuser@example.com", password_hash="hashed")
+    db.query().filter().first.return_value = mock_user
+
+    resolved_user = get_current_user(token=token, db=db)
+    assert resolved_user.id == user_id
+
+
+def test_get_current_user_with_invalid_jwt():
+    from unittest.mock import MagicMock
+
+    import pytest
+    from fastapi import HTTPException
+
+    from backend.forgellm_api.api.dependencies.auth import get_current_user
+
+    db = MagicMock()
+    with pytest.raises(HTTPException) as exc:
+        get_current_user(token="invalid.jwt.token", db=db)
+    assert exc.value.status_code == 401
+
+
+def test_get_current_user_with_refresh_token_rejected():
+    from unittest.mock import MagicMock
+
+    import pytest
+    from fastapi import HTTPException
+
+    from backend.forgellm_api.api.dependencies.auth import get_current_user
+
+    refresh_token = create_refresh_token("user-refresh-123")
+    db = MagicMock()
+    with pytest.raises(HTTPException) as exc:
+        get_current_user(token=refresh_token, db=db)
+    assert exc.value.status_code == 401

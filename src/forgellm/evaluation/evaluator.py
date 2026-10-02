@@ -10,7 +10,6 @@ import os
 import subprocess  # nosec B404
 from typing import Any
 
-import mlflow
 import torch
 from transformers import PreTrainedModel, PreTrainedTokenizer
 
@@ -349,36 +348,43 @@ class ForgeEvaluator:
         self.generate_markdown_report(final_payload, legacy_md_path)
 
         # Log to MLflow if active run exists
-        if mlflow.active_run():
-            mlflow_metrics: dict[str, float] = {
-                "eval_exact_match": agg_objective["avg_exact_match"],
-                "eval_rougeL": agg_objective["avg_rougeL"],
-                "eval_semantic_similarity": agg_objective["avg_semantic_similarity"],
-                "eval_composite_quality_score": agg_objective[
-                    "avg_composite_quality_score"
-                ],
-            }
-            if agg_judge:
-                mlflow_metrics.update(
-                    {
-                        "eval_judge_relevance": agg_judge["avg_relevance"],
-                        "eval_judge_helpfulness": agg_judge["avg_helpfulness"],
-                        "eval_judge_instruction_following": agg_judge[
-                            "avg_instruction_following"
-                        ],
-                        "eval_judge_factuality": agg_judge["avg_factuality"],
-                        "eval_judge_safety": agg_judge["avg_safety"],
-                        "eval_judge_overall": agg_judge["avg_overall"],
-                    }
-                )
+        try:
+            import mlflow
 
-            mlflow.log_metrics(mlflow_metrics)
-            mlflow.log_artifact(json_path, artifact_path="evaluation")
-            mlflow.log_artifact(metrics_path, artifact_path="evaluation")
-            mlflow.log_artifact(pred_path, artifact_path="evaluation")
-            mlflow.log_artifact(md_path, artifact_path="evaluation")
-            if judge_enabled and judge_results:
-                mlflow.log_artifact(judge_jsonl_path, artifact_path="evaluation")
+            if mlflow.active_run():
+                mlflow_metrics: dict[str, float] = {
+                    "eval_exact_match": agg_objective["avg_exact_match"],
+                    "eval_rougeL": agg_objective["avg_rougeL"],
+                    "eval_semantic_similarity": agg_objective[
+                        "avg_semantic_similarity"
+                    ],
+                    "eval_composite_quality_score": agg_objective[
+                        "avg_composite_quality_score"
+                    ],
+                }
+                if agg_judge:
+                    mlflow_metrics.update(
+                        {
+                            "eval_judge_relevance": agg_judge["avg_relevance"],
+                            "eval_judge_helpfulness": agg_judge["avg_helpfulness"],
+                            "eval_judge_instruction_following": agg_judge[
+                                "avg_instruction_following"
+                            ],
+                            "eval_judge_factuality": agg_judge["avg_factuality"],
+                            "eval_judge_safety": agg_judge["avg_safety"],
+                            "eval_judge_overall": agg_judge["avg_overall"],
+                        }
+                    )
+
+                mlflow.log_metrics(mlflow_metrics)
+                mlflow.log_artifact(json_path, artifact_path="evaluation")
+                mlflow.log_artifact(metrics_path, artifact_path="evaluation")
+                mlflow.log_artifact(pred_path, artifact_path="evaluation")
+                mlflow.log_artifact(md_path, artifact_path="evaluation")
+                if judge_enabled and judge_results:
+                    mlflow.log_artifact(judge_jsonl_path, artifact_path="evaluation")
+        except ImportError:
+            pass
 
         return final_payload
 
