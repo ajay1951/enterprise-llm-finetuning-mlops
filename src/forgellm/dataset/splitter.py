@@ -1,4 +1,7 @@
-from datasets import Dataset, DatasetDict
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from datasets import Dataset, DatasetDict
 
 
 class DatasetSplitter:
@@ -8,8 +11,13 @@ class DatasetSplitter:
         self.validation_split = validation_split
         self.seed = seed
 
-    def split(self, dataset: Dataset) -> DatasetDict:
+    def split(self, dataset: Any) -> Any:
         """Splits a dataset into train and validation sets."""
+        try:
+            from datasets import DatasetDict
+        except ImportError:
+            DatasetDict = dict
+
         split_dataset = dataset.train_test_split(
             test_size=self.validation_split, seed=self.seed
         )

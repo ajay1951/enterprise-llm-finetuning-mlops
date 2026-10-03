@@ -1,11 +1,19 @@
 from typing import Any
 
-import mlflow
-from mlflow.tracking import MlflowClient
+try:
+    import mlflow
+    from mlflow.tracking import MlflowClient
+except ImportError:  # pragma: no cover
+    mlflow = None
+    MlflowClient = None
 
 
 class MLflowModelRegistry:
     def __init__(self, tracking_uri: str = "http://localhost:5000"):
+        if mlflow is None or MlflowClient is None:
+            raise RuntimeError(
+                "MLflow is not installed. Please install mlflow to use MLflowModelRegistry."
+            )
         mlflow.set_tracking_uri(tracking_uri)
         self.client = MlflowClient(tracking_uri)
 

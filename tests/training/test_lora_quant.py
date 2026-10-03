@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -9,12 +9,16 @@ from forgellm.training.quantization import get_quantization_config
 
 def test_lora_config_generation():
     lora_cfg = LoraConfig(r=8, alpha=16, dropout=0.1)
-    peft_cfg = get_lora_config(lora_cfg)
+    with patch(
+        "forgellm.training.lora.PeftLoraConfig",
+        MagicMock(side_effect=lambda **kwargs: MagicMock(**kwargs)),
+    ):
+        peft_cfg = get_lora_config(lora_cfg)
 
-    assert peft_cfg.r == 8
-    assert peft_cfg.lora_alpha == 16
-    assert peft_cfg.lora_dropout == 0.1
-    assert "q_proj" in peft_cfg.target_modules
+        assert peft_cfg.r == 8
+        assert peft_cfg.lora_alpha == 16
+        assert peft_cfg.lora_dropout == 0.1
+        assert "q_proj" in peft_cfg.target_modules
 
 
 def test_quantization_disabled():

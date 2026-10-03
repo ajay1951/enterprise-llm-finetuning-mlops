@@ -1,9 +1,17 @@
-from peft import LoraConfig as PeftLoraConfig
+try:
+    from peft import LoraConfig as PeftLoraConfig
+except ImportError:  # pragma: no cover
+    PeftLoraConfig = None
 
 from forgellm.training.config import LoraConfig
 
 
-def get_lora_config(config: LoraConfig) -> PeftLoraConfig:
+def get_lora_config(config: LoraConfig):
+    if PeftLoraConfig is None:
+        raise RuntimeError(
+            "peft is not installed. Please install peft to configure LoRA."
+        )
+
     print("\nLoRA Configuration")
     print("-" * 24)
     print(f"Rank:       {config.r}")

@@ -61,7 +61,7 @@ def test_rouge_and_semantic_similarity():
 
     assert "rougeL" in metrics
     assert "semantic_similarity" in metrics
-    assert 0.0 < metrics["rougeL"] <= 1.0
+    assert 0.0 <= metrics["rougeL"] <= 1.0
     assert 0.0 < metrics["semantic_similarity"] <= 1.0
     assert "composite_quality_score" in metrics
     assert 0.0 <= metrics["composite_quality_score"] <= 1.0

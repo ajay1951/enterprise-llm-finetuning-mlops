@@ -3,8 +3,17 @@ import logging
 import os
 
 import torch
-from datasets import Dataset
-from trl import DPOConfig, DPOTrainer
+
+try:
+    from datasets import Dataset
+except ImportError:  # pragma: no cover
+    Dataset = None
+
+try:
+    from trl import DPOConfig, DPOTrainer
+except ImportError:  # pragma: no cover
+    DPOConfig = None
+    DPOTrainer = None
 
 from forgellm.models.loader import ModelLoader
 from forgellm.training.lora import get_lora_config

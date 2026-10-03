@@ -7,7 +7,6 @@ from rich.table import Table
 
 from forgellm.dataset.cleaner import DatasetCleaner
 from forgellm.dataset.registry import DatasetRegistry
-from forgellm.dataset.splitter import DatasetSplitter
 from forgellm.dataset.validator import DatasetValidator
 
 app = typer.Typer(help="Dataset management and preparation commands.")
@@ -77,6 +76,8 @@ def prepare(
     dataset = formatter.format_dataset(cleaned_file)
 
     console.print("[yellow]Splitting...[/yellow]")
+    from forgellm.dataset.splitter import DatasetSplitter
+
     splitter = DatasetSplitter(validation_split=validation_split, seed=seed)
     split_dataset = splitter.split(dataset)
 

@@ -93,7 +93,11 @@ class CeleryTrainingProgressCallback(TrainerCallback):
 
 
 @celery_app.task(bind=True, name="run_training_job")
-def run_training_job(self, job_id: str):
+def run_training_job(self, job_id: str = None):
+    if job_id is None and isinstance(self, str):
+        job_id = self
+        self = None
+
     logger.info(f"Starting training job {job_id}")
 
     db = SessionLocal()

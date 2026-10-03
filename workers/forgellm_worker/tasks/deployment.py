@@ -30,7 +30,11 @@ def get_free_port():
 
 
 @celery_app.task(bind=True, name="run_deployment_server")
-def run_deployment_server(self, deployment_id: str):
+def run_deployment_server(self, deployment_id: str = None):
+    if deployment_id is None and isinstance(self, str):
+        deployment_id = self
+        self = None
+
     logger.info(f"Starting deployment worker for {deployment_id}")
 
     db = SessionLocal()

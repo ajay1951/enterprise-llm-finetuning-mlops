@@ -3,10 +3,23 @@ import json
 import os
 import subprocess  # nosec B404
 
-import mlflow
-from datasets import Dataset
+try:
+    import mlflow
+except ImportError:  # pragma: no cover
+    mlflow = None
+
+try:
+    from datasets import Dataset
+except ImportError:  # pragma: no cover
+    Dataset = None
+
 from transformers import set_seed
-from trl import SFTConfig, SFTTrainer
+
+try:
+    from trl import SFTConfig, SFTTrainer
+except ImportError:  # pragma: no cover
+    SFTConfig = None
+    SFTTrainer = None
 
 from forgellm.models.loader import ModelLoader
 from forgellm.training.config import load_config
