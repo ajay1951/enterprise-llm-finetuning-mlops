@@ -95,6 +95,11 @@ class ZeroGPUInferenceEngine:
             )
             return
 
+        # Ensure model is on CUDA with bfloat16 during ZeroGPU lease
+        if torch.cuda.is_available() and self.model is not None:
+            if next(self.model.parameters()).device.type != "cuda":
+                self.model.to(device="cuda", dtype=torch.bfloat16)
+
         # Input sanitization and bounds enforcement
         max_new_tokens = max(1, min(int(max_new_tokens), 512))
         temperature = max(0.0, min(float(temperature), 2.0))
@@ -114,7 +119,13 @@ class ZeroGPUInferenceEngine:
                 prompt_text += f"{m.get('role', 'user')}: {m.get('content', '')}\n"
             prompt_text += "assistant:\n"
 
-        target_device = self.model.device if self.model else "cpu"
+        try:
+            target_device = next(self.model.parameters()).device
+            if not isinstance(target_device, (str, torch.device)):
+                target_device = "cpu"
+        except Exception:
+            target_device = "cpu"
+
         raw_inputs = self.tokenizer(prompt_text, return_tensors="pt")
         if hasattr(raw_inputs, "to"):
             inputs = raw_inputs.to(target_device)
@@ -137,6 +148,7 @@ class ZeroGPUInferenceEngine:
             "max_new_tokens": max_new_tokens,
             "do_sample": do_sample,
             "pad_token_id": self.tokenizer.eos_token_id or self.tokenizer.pad_token_id,
+            "eos_token_id": self.tokenizer.eos_token_id,
         }
         if do_sample:
             gen_kwargs["temperature"] = max(temperature, 1e-4)

@@ -12,8 +12,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import gradio as gr
 from adapter import ZeroGPUInferenceEngine
 
-# Initialize inference engine instance
+# Initialize inference engine instance and load model weights eagerly
 engine = ZeroGPUInferenceEngine()
+engine.load_model()
 
 DEFAULT_SYSTEM_PROMPT = (
     "You are ForgeLLM, an enterprise-grade AI assistant specialized in LLMOps, "
