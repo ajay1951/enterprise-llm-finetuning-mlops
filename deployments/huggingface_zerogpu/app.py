@@ -91,6 +91,7 @@ with gr.Blocks(
                 label="Conversation",
                 height=480,
                 show_copy_button=True,
+                type="messages",
             )
             telemetry_box = gr.Markdown("Ready for generation.")
 
@@ -147,18 +148,22 @@ with gr.Blocks(
                 """
             )
 
-    # Wire up chat submit actions
+    # Wire up chat submit actions (Gradio 5.x messages format)
     def user_submit(user_message, chat_history):
         if not user_message or not user_message.strip():
             return "", chat_history
-        new_history = list(chat_history or []) + [[user_message, None]]
-        return "", new_history
+        history_list = list(chat_history or [])
+        history_list.append({"role": "user", "content": user_message})
+        history_list.append({"role": "assistant", "content": ""})
+        return "", history_list
 
     def bot_stream(chat_history, sys_prompt, temp, max_tok, tp):
-        if not chat_history:
-            return chat_history, "Ready."
-        user_msg = chat_history[-1][0]
-        prior_history = chat_history[:-1]
+        if not chat_history or len(chat_history) < 2:
+            yield chat_history, "Ready."
+            return
+
+        user_msg = chat_history[-2]["content"]
+        prior_history = chat_history[:-2]
 
         for bot_reply, telem in chat_response(
             message=user_msg,
@@ -168,7 +173,7 @@ with gr.Blocks(
             max_tokens=max_tok,
             top_p=tp,
         ):
-            chat_history[-1][1] = bot_reply
+            chat_history[-1]["content"] = bot_reply
             yield chat_history, telem
 
     msg_input.submit(
@@ -200,7 +205,10 @@ with gr.Blocks(
     )
 
     clear_btn.click(
-        lambda: ([], "Conversation reset."), None, [chatbot, telemetry_box], queue=False
+        lambda: ([], "Conversation reset."),
+        None,
+        [chatbot, telemetry_box],
+        queue=False,
     )
 
 if __name__ == "__main__":

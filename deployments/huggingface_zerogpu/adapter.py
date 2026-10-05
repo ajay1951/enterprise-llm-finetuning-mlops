@@ -98,6 +98,15 @@ class ZeroGPUInferenceEngine:
             )
             return
 
+        # On ZeroGPU, migrate model to CUDA once inside @spaces.GPU lease
+        if torch.cuda.is_available() and self.model is not None:
+            current_dev = next(self.model.parameters()).device
+            if current_dev.type != "cuda":
+                print(
+                    "[ForgeLLM-ZeroGPU] Migrating model to CUDA inside ZeroGPU slice..."
+                )
+                self.model.to("cuda")
+
         # Input sanitization and bounds enforcement
         max_new_tokens = max(1, min(int(max_new_tokens), 512))
         temperature = max(0.0, min(float(temperature), 2.0))
@@ -117,11 +126,12 @@ class ZeroGPUInferenceEngine:
                 prompt_text += f"{m.get('role', 'user')}: {m.get('content', '')}\n"
             prompt_text += "assistant:\n"
 
+        target_device = self.model.device if self.model else "cpu"
         inputs = self.tokenizer(prompt_text, return_tensors="pt")
-        input_ids = inputs["input_ids"].to(self.model.device)
+        input_ids = inputs["input_ids"].to(target_device)
         attention_mask = inputs.get("attention_mask")
         if attention_mask is not None:
-            attention_mask = attention_mask.to(self.model.device)
+            attention_mask = attention_mask.to(target_device)
 
         streamer = TextIteratorStreamer(
             self.tokenizer, skip_prompt=True, skip_special_tokens=True
