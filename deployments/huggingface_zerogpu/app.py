@@ -124,7 +124,7 @@ demo = gr.ChatInterface(
     fn=chat_fn,
     type="messages",
     title="⚒️ ForgeLLM — Enterprise LLM Platform Demo",
-    description="Public Hugging Face ZeroGPU live inference powered by `Qwen/Qwen2.5-1.5B-Instruct`.",
+    description="Public Hugging Face ZeroGPU live inference powered by `Qwen/Qwen2.5-0.5B-Instruct`.",
     theme=gr.themes.Soft(primary_hue="blue", secondary_hue="indigo"),
     additional_inputs=[
         gr.Textbox(

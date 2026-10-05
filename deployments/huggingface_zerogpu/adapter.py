@@ -30,7 +30,7 @@ except (ImportError, AttributeError):
         return func
 
 
-DEFAULT_MODEL_ID = "Qwen/Qwen2.5-1.5B-Instruct"
+DEFAULT_MODEL_ID = "Qwen/Qwen2.5-0.5B-Instruct"
 
 
 class ZeroGPUInferenceEngine:
