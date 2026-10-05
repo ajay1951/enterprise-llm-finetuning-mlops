@@ -133,47 +133,82 @@ class ZeroGPUInferenceEngine:
         if attention_mask is not None:
             attention_mask = attention_mask.to(target_device)
 
-        streamer = TextIteratorStreamer(
-            self.tokenizer, skip_prompt=True, skip_special_tokens=True
-        )
-
-        gen_kwargs = {
-            "input_ids": input_ids,
-            "attention_mask": attention_mask,
-            "streamer": streamer,
-            "max_new_tokens": max_new_tokens,
-            "temperature": temperature if temperature > 0 else None,
-            "top_p": top_p if temperature > 0 else None,
-            "do_sample": temperature > 0,
-            "pad_token_id": self.tokenizer.eos_token_id,
-        }
-
         start_time = time.perf_counter()
         first_token_time = None
-        generated_text = ""
-        token_count = 0
+        generated_ids: list[int] = []
+        past_key_values = None
+        curr_input_ids = input_ids
+        curr_attention_mask = attention_mask
 
-        # Execute generation in separate daemon thread for streaming
-        thread = Thread(target=self.model.generate, kwargs=gen_kwargs)
-        thread.start()
+        with torch.no_grad():
+            for _ in range(max_new_tokens):
+                outputs = self.model(
+                    input_ids=curr_input_ids,
+                    attention_mask=curr_attention_mask,
+                    past_key_values=past_key_values,
+                    use_cache=True,
+                )
+                past_key_values = outputs.past_key_values
+                logits = outputs.logits[:, -1, :]
 
-        for token_count, new_text in enumerate(streamer, start=1):
-            if first_token_time is None:
-                first_token_time = time.perf_counter()
-            generated_text += new_text
-            now = time.perf_counter()
-            ttft_sec = (first_token_time - start_time) if first_token_time else 0.0
-            elapsed_sec = max(0.001, now - start_time)
-            tokens_per_sec = token_count / elapsed_sec
+                if temperature > 0:
+                    probs = torch.softmax(logits / max(temperature, 1e-5), dim=-1)
+                    if top_p < 1.0:
+                        sorted_probs, sorted_indices = torch.sort(
+                            probs, descending=True
+                        )
+                        cum_probs = torch.cumsum(sorted_probs, dim=-1)
+                        sorted_indices_to_remove = cum_probs > top_p
+                        sorted_indices_to_remove[..., 1:] = sorted_indices_to_remove[
+                            ..., :-1
+                        ].clone()
+                        sorted_indices_to_remove[..., 0] = 0
+                        indices_to_remove = sorted_indices_to_remove.scatter(
+                            1, sorted_indices, sorted_indices_to_remove
+                        )
+                        probs = probs.masked_fill(indices_to_remove, 0.0)
+                        probs = probs / probs.sum(dim=-1, keepdim=True)
+                    next_token = torch.multinomial(probs, num_samples=1)
+                else:
+                    next_token = torch.argmax(logits, dim=-1, keepdim=True)
 
-            telemetry = {
-                "model": self.model_id,
-                "device": str(self.model.device),
-                "tokens_generated": token_count,
-                "latency_sec": round(elapsed_sec, 3),
-                "ttft_sec": round(ttft_sec, 3),
-                "tokens_per_sec": round(tokens_per_sec, 2),
-            }
-            yield generated_text, telemetry
+                token_id = next_token.item()
+                if token_id == self.tokenizer.eos_token_id:
+                    break
 
-        thread.join()
+                generated_ids.append(token_id)
+                if first_token_time is None:
+                    first_token_time = time.perf_counter()
+
+                current_text = self.tokenizer.decode(
+                    generated_ids, skip_special_tokens=True
+                )
+
+                curr_input_ids = next_token
+                if curr_attention_mask is not None:
+                    curr_attention_mask = torch.cat(
+                        [
+                            curr_attention_mask,
+                            torch.ones(
+                                (1, 1),
+                                device=target_device,
+                                dtype=curr_attention_mask.dtype,
+                            ),
+                        ],
+                        dim=1,
+                    )
+
+                now = time.perf_counter()
+                elapsed_sec = max(0.001, now - start_time)
+                tokens_per_sec = len(generated_ids) / elapsed_sec
+                ttft_sec = (first_token_time - start_time) if first_token_time else 0.0
+
+                telemetry = {
+                    "model": self.model_id,
+                    "device": str(self.model.device),
+                    "tokens_generated": len(generated_ids),
+                    "latency_sec": round(elapsed_sec, 3),
+                    "ttft_sec": round(ttft_sec, 3),
+                    "tokens_per_sec": round(tokens_per_sec, 2),
+                }
+                yield current_text, telemetry
