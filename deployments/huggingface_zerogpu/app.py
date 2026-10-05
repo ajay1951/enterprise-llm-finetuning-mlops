@@ -72,7 +72,18 @@ def chat_response(
         yield chunk_text, telemetry_summary
 
 
+try:
+    import spaces
+
+    gpu_decorator = spaces.GPU(duration=60)
+except (ImportError, AttributeError):
+
+    def gpu_decorator(func):
+        return func
+
+
 # Build Gradio ChatInterface
+@gpu_decorator
 def chat_fn(
     message: str,
     history: list[dict[str, str]],
