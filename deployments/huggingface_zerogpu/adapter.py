@@ -30,7 +30,7 @@ except (ImportError, AttributeError):
         return func
 
 
-DEFAULT_MODEL_ID = "Qwen/Qwen2.5-0.5B-Instruct"
+DEFAULT_MODEL_ID = "Qwen/Qwen2.5-1.5B-Instruct"
 
 
 class ZeroGPUInferenceEngine:
@@ -55,15 +55,15 @@ class ZeroGPUInferenceEngine:
             )
 
             print(f"[ForgeLLM-ZeroGPU] Loading model weights: {self.model_id}")
-            dtype = torch.float16 if self.device == "cuda" else torch.float32
-
             self.model = AutoModelForCausalLM.from_pretrained(
                 self.model_id,
-                torch_dtype=dtype,
-                device_map="auto" if self.device == "cuda" else None,
+                torch_dtype="auto",
+                device_map="auto" if torch.cuda.is_available() else None,
                 trust_remote_code=True,
                 low_cpu_mem_usage=True,
             )
+            if not torch.cuda.is_available() and self.device == "cpu":
+                self.model.to("cpu")
             self.model.eval()
             self._is_loaded = True
             print(
@@ -82,9 +82,9 @@ class ZeroGPUInferenceEngine:
     def generate_stream(
         self,
         messages: list[dict[str, str]],
-        max_new_tokens: int = 256,
+        max_new_tokens: int = 512,
         temperature: float = 0.7,
-        top_p: float = 0.9,
+        top_p: float = 0.8,
     ) -> Generator[tuple[str, dict[str, Any]], None, None]:
         """Generate response tokens with live telemetry.
 
@@ -97,15 +97,6 @@ class ZeroGPUInferenceEngine:
                 {},
             )
             return
-
-        # On ZeroGPU, migrate model to CUDA once inside @spaces.GPU lease
-        if torch.cuda.is_available() and self.model is not None:
-            current_dev = next(self.model.parameters()).device
-            if current_dev.type != "cuda":
-                print(
-                    "[ForgeLLM-ZeroGPU] Migrating model to CUDA inside ZeroGPU slice..."
-                )
-                self.model.to("cuda")
 
         # Input sanitization and bounds enforcement
         max_new_tokens = max(1, min(int(max_new_tokens), 512))
