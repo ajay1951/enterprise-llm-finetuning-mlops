@@ -46,6 +46,8 @@ data/test/*
 .forgellm/
 mlartifacts/
 mlflow.db
+mlruns.db
+mlruns/
 scratch_runner_*.py
 .ruff_cache/
 .pytest_cache/

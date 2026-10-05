@@ -1,9 +1,9 @@
 {
   "model_name": "forgellm-qwen-phase3",
-  "version": "v1",
+  "version": "v2",
   "base_model": "Qwen/Qwen2.5-0.5B",
   "adapter_location": "outputs/phase3_micro_experiment\\adapter",
   "exported_location": "outputs/exported_model",
   "format": "pytorch",
-  "exported_at": "2026-10-05T06:47:28.841997+00:00"
+  "exported_at": "2026-10-05T09:17:47.451232+00:00"
 }

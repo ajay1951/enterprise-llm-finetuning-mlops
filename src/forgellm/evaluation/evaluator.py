@@ -35,6 +35,34 @@ def get_git_sha() -> str:
         return os.environ.get("GITHUB_SHA", "unknown")
 
 
+def compute_rouge_l(reference: str, candidate: str) -> float:
+    """Pure-Python deterministic Longest Common Subsequence (LCS) ROUGE-L F1 calculation."""
+    ref_tokens = reference.strip().lower().split()
+    cand_tokens = candidate.strip().lower().split()
+    if not ref_tokens or not cand_tokens:
+        return 1.0 if reference.strip() == candidate.strip() else 0.0
+
+    m, n = len(ref_tokens), len(cand_tokens)
+    dp = [[0] * (n + 1) for _ in range(m + 1)]
+    for i in range(m):
+        for j in range(n):
+            if ref_tokens[i] == cand_tokens[j]:
+                dp[i + 1][j + 1] = dp[i][j] + 1
+            else:
+                dp[i + 1][j + 1] = max(dp[i + 1][j], dp[i][j + 1])
+
+    lcs_len = dp[m][n]
+    if lcs_len == 0:
+        return 0.0
+
+    precision = lcs_len / n
+    recall = lcs_len / m
+    if precision + recall == 0:
+        return 0.0
+    f1 = (2 * precision * recall) / (precision + recall)
+    return round(float(f1), 4)
+
+
 class ForgeEvaluator:
     """Evaluates language model predictions using objective deterministic metrics
 
@@ -57,7 +85,10 @@ class ForgeEvaluator:
         self.judge = judge or LLMJudge()
 
         if rouge_scorer:
-            self.scorer = rouge_scorer.RougeScorer(["rougeL"], use_stemmer=True)
+            try:
+                self.scorer = rouge_scorer.RougeScorer(["rougeL"], use_stemmer=True)
+            except Exception:
+                self.scorer = None
         else:
             self.scorer = None
 
@@ -72,30 +103,23 @@ class ForgeEvaluator:
             prompt_formatted = f"User: {prompt}\nAssistant:"
 
         raw_inputs = self.tokenizer(prompt_formatted, return_tensors="pt")
-        if hasattr(raw_inputs, "to"):
-            inputs = raw_inputs.to(self.device)
-        elif isinstance(raw_inputs, dict):
-            inputs = {
-                k: v.to(self.device) if hasattr(v, "to") else v
-                for k, v in raw_inputs.items()
-            }
-        else:
-            inputs = raw_inputs
+        input_ids = raw_inputs["input_ids"].to(self.device)
+        attention_mask = raw_inputs.get("attention_mask")
+        if attention_mask is not None:
+            attention_mask = attention_mask.to(self.device)
+
+        input_len = input_ids.shape[-1]
 
         with torch.no_grad():
             outputs = self.model.generate(
-                **inputs,
+                input_ids=input_ids,
+                attention_mask=attention_mask,
                 max_new_tokens=max_new_tokens,
                 do_sample=False,
                 eos_token_id=getattr(self.tokenizer, "eos_token_id", None),
                 pad_token_id=getattr(self.tokenizer, "eos_token_id", None),
             )
 
-        input_len = (
-            inputs["input_ids"].shape[-1]
-            if isinstance(inputs, dict) and "input_ids" in inputs
-            else 0
-        )
         generated_text = self.tokenizer.decode(
             outputs[0][input_len:], skip_special_tokens=True
         )
@@ -126,12 +150,15 @@ class ForgeEvaluator:
             "exact_match": 1.0 if exp_clean == gen_clean else 0.0
         }
 
-        # ROUGE-L calculation
+        # ROUGE-L calculation with pure-Python fallback
         if self.scorer and exp_clean and gen_clean:
-            scores = self.scorer.score(expected, generated)
-            metrics["rougeL"] = round(float(scores["rougeL"].fmeasure), 4)
+            try:
+                scores = self.scorer.score(expected, generated)
+                metrics["rougeL"] = round(float(scores["rougeL"].fmeasure), 4)
+            except Exception:
+                metrics["rougeL"] = compute_rouge_l(expected, generated)
         else:
-            metrics["rougeL"] = 1.0 if exp_clean == gen_clean else 0.0
+            metrics["rougeL"] = compute_rouge_l(expected, generated)
 
         # Semantic Token Similarity (Jaccard Index)
         exp_tokens = set(exp_clean.lower().split())

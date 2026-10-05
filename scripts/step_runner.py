@@ -1,25 +1,26 @@
-import sys
-import os
 import datetime
-import json
-import shutil
 import gc
+import json
+import os
+import shutil
+import sys
 import traceback
+
 import torch
 
 sys.path.insert(0, os.path.abspath("src"))
 sys.path.insert(0, os.path.abspath("."))
 
-from forgellm.training.config import load_config
-from forgellm.training.quantization import get_quantization_config
-from forgellm.training.trainer import ForgeTrainer
-from forgellm.models.loader import ModelLoader
-from forgellm.models.registry import ModelRegistry
-from forgellm.models.exporter import ModelExporter
-from forgellm.models.mlflow_registry import MLflowModelRegistry
 from forgellm.evaluation.evaluator import ForgeEvaluator
 from forgellm.evaluation.judge import LLMJudge
 from forgellm.evaluation.regression import RegressionAnalyzer
+from forgellm.models.exporter import ModelExporter
+from forgellm.models.loader import ModelLoader
+from forgellm.models.mlflow_registry import MLflowModelRegistry
+from forgellm.models.registry import ModelRegistry
+from forgellm.training.config import load_config
+from forgellm.training.quantization import get_quantization_config
+from forgellm.training.trainer import ForgeTrainer
 
 config_path = "configs/presets/micro_qlora.yaml"
 dataset_path = "tests/fixtures/sample_dataset.jsonl"
@@ -41,7 +42,9 @@ print("  Environment diagnostic saved.", flush=True)
 
 print("\n[STEP 2] Starting Step 2: Baseline Model Evaluation...", flush=True)
 os.makedirs("artifacts/baseline", exist_ok=True)
-loader = ModelLoader(config.model.name, trust_remote_code=config.model.trust_remote_code)
+loader = ModelLoader(
+    config.model.name, trust_remote_code=config.model.trust_remote_code
+)
 tokenizer = loader.load_tokenizer()
 q_config = get_quantization_config(config.quantization)
 base_model = loader.load_model(quantization_config=q_config)
@@ -54,7 +57,10 @@ base_evaluator = ForgeEvaluator(
     judge=judge,
 )
 base_results = base_evaluator.evaluate_test_set(dataset_path, "artifacts/baseline")
-print(f"  Baseline Avg Composite: {base_results['aggregate_metrics']['avg_composite_quality_score']}", flush=True)
+print(
+    f"  Baseline Avg Composite: {base_results['aggregate_metrics']['avg_composite_quality_score']}",
+    flush=True,
+)
 
 # Free base model VRAM
 del base_model
@@ -84,9 +90,12 @@ if not os.path.exists(adapter_dir) or not os.listdir(adapter_dir):
         and os.path.isdir(os.path.join(config.training.output_dir, d))
     ]
     if ckpts:
-        adapter_dir = sorted(ckpts, key=lambda x: int(x.split("-")[-1]))[-1]
+        adapter_dir = max(ckpts, key=lambda x: int(x.split("-")[-1]))
 
-print(f"  Training finished in {duration_secs:.2f}s | Adapter at: {adapter_dir}", flush=True)
+print(
+    f"  Training finished in {duration_secs:.2f}s | Adapter at: {adapter_dir}",
+    flush=True,
+)
 
 # Free trainer
 del trainer
@@ -148,17 +157,24 @@ print(f"  Model exported to {export_out}", flush=True)
 print("\n[STEP 5] Starting Step 5: MLflow Registration...", flush=True)
 try:
     registry = MLflowModelRegistry(tracking_uri="sqlite:///mlruns.db")
-    ver = registry.register_model(f"phase3-run-{config.training.seed}", "ForgeLLM-Qwen-Expert")
-    registry.promote_model("ForgeLLM-Qwen-Expert", version=int(ver) if str(ver).isdigit() else ver)
-    print(f"  Model registered and promoted to Production alias.", flush=True)
+    ver = registry.register_model(
+        f"phase3-run-{config.training.seed}", "ForgeLLM-Qwen-Expert"
+    )
+    registry.promote_model(
+        "ForgeLLM-Qwen-Expert", version=int(ver) if str(ver).isdigit() else ver
+    )
+    print("  Model registered and promoted to Production alias.", flush=True)
 except Exception as e:
     print(f"  MLflow tracking notice: {e}", flush=True)
 
 print("\n[STEP 6] Starting Step 6: Fine-Tuned Model Evaluation...", flush=True)
 os.makedirs("artifacts/fine_tuned", exist_ok=True)
-loader = ModelLoader(config.model.name, trust_remote_code=config.model.trust_remote_code)
+loader = ModelLoader(
+    config.model.name, trust_remote_code=config.model.trust_remote_code
+)
 eval_base = loader.load_model(quantization_config=q_config)
 from peft import PeftModel
+
 ft_model = PeftModel.from_pretrained(eval_base, adapter_dir)
 
 ft_evaluator = ForgeEvaluator(
@@ -168,41 +184,68 @@ ft_evaluator = ForgeEvaluator(
     judge=judge,
 )
 ft_results = ft_evaluator.evaluate_test_set(dataset_path, "artifacts/fine_tuned")
-print(f"  Fine-Tuned Avg Composite: {ft_results['aggregate_metrics']['avg_composite_quality_score']}", flush=True)
+print(
+    f"  Fine-Tuned Avg Composite: {ft_results['aggregate_metrics']['avg_composite_quality_score']}",
+    flush=True,
+)
 
 print("\n[STEP 7] Starting Step 7: Regression & Quality Gate...", flush=True)
 os.makedirs("artifacts/quality_gate", exist_ok=True)
 analyzer = RegressionAnalyzer(base_results, ft_results)
 reg_report_payload = analyzer.generate_report("artifacts/quality_gate")
 if os.path.exists("artifacts/quality_gate/regression_report.md"):
-    shutil.copy("artifacts/quality_gate/regression_report.md", "artifacts/quality_gate/report.md")
+    shutil.copy(
+        "artifacts/quality_gate/regression_report.md",
+        "artifacts/quality_gate/report.md",
+    )
 
 qgate_summary = {
     "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
     "baseline_model": config.model.name,
     "finetuned_model": f"{config.model.name}-finetuned",
     "dataset": dataset_path,
-    "status": "PASSED" if ft_results["aggregate_metrics"]["avg_composite_quality_score"] >= base_results["aggregate_metrics"]["avg_composite_quality_score"] else "FLAGGED",
+    "status": "PASSED"
+    if ft_results["aggregate_metrics"]["avg_composite_quality_score"]
+    >= base_results["aggregate_metrics"]["avg_composite_quality_score"]
+    else "FLAGGED",
     "comparison": {
         "exact_match": {
             "baseline": base_results["aggregate_metrics"]["avg_exact_match"],
             "finetuned": ft_results["aggregate_metrics"]["avg_exact_match"],
-            "delta": round(ft_results["aggregate_metrics"]["avg_exact_match"] - base_results["aggregate_metrics"]["avg_exact_match"], 4),
+            "delta": round(
+                ft_results["aggregate_metrics"]["avg_exact_match"]
+                - base_results["aggregate_metrics"]["avg_exact_match"],
+                4,
+            ),
         },
         "rougeL": {
             "baseline": base_results["aggregate_metrics"]["avg_rougeL"],
             "finetuned": ft_results["aggregate_metrics"]["avg_rougeL"],
-            "delta": round(ft_results["aggregate_metrics"]["avg_rougeL"] - base_results["aggregate_metrics"]["avg_rougeL"], 4),
+            "delta": round(
+                ft_results["aggregate_metrics"]["avg_rougeL"]
+                - base_results["aggregate_metrics"]["avg_rougeL"],
+                4,
+            ),
         },
         "semantic_similarity": {
             "baseline": base_results["aggregate_metrics"]["avg_semantic_similarity"],
             "finetuned": ft_results["aggregate_metrics"]["avg_semantic_similarity"],
-            "delta": round(ft_results["aggregate_metrics"]["avg_semantic_similarity"] - base_results["aggregate_metrics"]["avg_semantic_similarity"], 4),
+            "delta": round(
+                ft_results["aggregate_metrics"]["avg_semantic_similarity"]
+                - base_results["aggregate_metrics"]["avg_semantic_similarity"],
+                4,
+            ),
         },
         "composite_quality_score": {
-            "baseline": base_results["aggregate_metrics"]["avg_composite_quality_score"],
+            "baseline": base_results["aggregate_metrics"][
+                "avg_composite_quality_score"
+            ],
             "finetuned": ft_results["aggregate_metrics"]["avg_composite_quality_score"],
-            "delta": round(ft_results["aggregate_metrics"]["avg_composite_quality_score"] - base_results["aggregate_metrics"]["avg_composite_quality_score"], 4),
+            "delta": round(
+                ft_results["aggregate_metrics"]["avg_composite_quality_score"]
+                - base_results["aggregate_metrics"]["avg_composite_quality_score"],
+                4,
+            ),
         },
     },
 }
@@ -213,5 +256,8 @@ print("\n" + "=" * 70, flush=True)
 print("PHASE 3 LIFECYCLE COMPLETED SUCCESSFULLY!", flush=True)
 print("=" * 70, flush=True)
 for m, vals in qgate_summary["comparison"].items():
-    print(f"  {m:<25} | Baseline: {vals['baseline']:<8.4f} | FT: {vals['finetuned']:<8.4f} | Delta: {vals['delta']:+<8.4f}", flush=True)
+    print(
+        f"  {m:<25} | Baseline: {vals['baseline']:<8.4f} | FT: {vals['finetuned']:<8.4f} | Delta: {vals['delta']:+<8.4f}",
+        flush=True,
+    )
 print("=" * 70, flush=True)

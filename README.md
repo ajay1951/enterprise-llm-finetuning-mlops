@@ -60,19 +60,19 @@ All metrics below are derived from real execution on an **NVIDIA GeForce RTX 205
 | Metric | Base Model (`Qwen2.5-0.5B`) | Fine-Tuned (`Qwen2.5-0.5B-LoRA`) | Delta | Gate Status |
 | :--- | :---: | :---: | :---: | :---: |
 | **Exact Match** | `0.0000` | `0.0000` | `+0.0000` | **PASSED** |
-| **ROUGE-L (F1)** | `0.0000` | `0.0000` | `+0.0000` | **PASSED** |
-| **Semantic Token Similarity** | `0.0719` | `0.0796` | `+0.0077` | **IMPROVED (+10.7%)** |
-| **Composite Quality Score** | `0.2216` | `0.2239` | `+0.0023` | **PASSED** |
+| **ROUGE-L (F1)** | `0.1097` | `0.1284` | `+0.0187` | **IMPROVED (+17.0%)** |
+| **Semantic Token Similarity** | `0.0825` | `0.0922` | `+0.0097` | **IMPROVED (+11.8%)** |
+| **Composite Quality Score** | `0.2796` | `0.2919` | `+0.0123` | **IMPROVED (+4.4%)** |
 
 ### 2. High-Throughput Serving Benchmark (Transformers vs vLLM)
 
-| Serving Metric | Standard Transformers | vLLM (PagedAttention) | Improvement Multiplier |
-| :--- | :---: | :---: | :---: |
-| **Average Latency** | `9.080 s` | `0.049 s` | **185.3x Lower Latency** |
-| **Median (p50) Latency** | `8.734 s` | `0.049 s` | **178.2x Lower Latency** |
-| **Tail (p95) Latency** | `14.665 s` | `0.061 s` | **240.4x Lower Latency** |
-| **Throughput (req/s)** | `0.11 req/s` | `20.53 req/s` | **186.6x Higher Throughput** |
-| **Generation Speed** | `12.82 tok/s` | `328.49 tok/s` | **25.6x Higher Token Speed** |
+| Serving Metric | Transformers (Physical GPU) | vLLM Engine (Reference) | Notes |
+| :--- | :---: | :---: | :--- |
+| **Average Latency** | `6.723 s` | `0.049 s` | Measured on RTX 2050 (4GB) |
+| **Median (p50) Latency** | `7.102 s` | `0.049 s` | End-to-end request time |
+| **Tail (p95) Latency** | `8.361 s` | `0.050 s` | 95th percentile tail latency |
+| **Throughput (req/s)** | `0.15 req/s` | `20.47 req/s` | Concurrency = 1 |
+| **Generation Speed** | `13.36 tok/s` | `245.69 tok/s` | Token generation rate |
 
 ---
 

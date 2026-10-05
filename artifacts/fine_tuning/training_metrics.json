@@ -2,7 +2,7 @@
   "model": "Qwen/Qwen2.5-0.5B",
   "dataset": "tests/fixtures/sample_dataset.jsonl",
   "epochs": 1,
-  "duration_seconds": 27.69,
+  "duration_seconds": 37.71,
   "adapter_dir": "outputs/phase3_micro_experiment\\adapter",
   "seed": 42,
   "learning_rate": 0.0002,

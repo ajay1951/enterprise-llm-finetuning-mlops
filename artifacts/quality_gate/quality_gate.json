@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-05T06:49:01.839589+00:00",
+  "timestamp": "2026-10-05T09:34:17.299914+00:00",
   "baseline_model": "Qwen/Qwen2.5-0.5B",
   "finetuned_model": "Qwen/Qwen2.5-0.5B-finetuned",
   "dataset": "tests/fixtures/sample_dataset.jsonl",
@@ -11,19 +11,19 @@
       "delta": 0.0
     },
     "rougeL": {
-      "baseline": 0.0,
-      "finetuned": 0.0,
-      "delta": 0.0
+      "baseline": 0.1097,
+      "finetuned": 0.1284,
+      "delta": 0.0187
     },
     "semantic_similarity": {
-      "baseline": 0.0719,
-      "finetuned": 0.0796,
-      "delta": 0.0077
+      "baseline": 0.0825,
+      "finetuned": 0.0922,
+      "delta": 0.0097
     },
     "composite_quality_score": {
-      "baseline": 0.2216,
-      "finetuned": 0.2239,
-      "delta": 0.0023
+      "baseline": 0.2796,
+      "finetuned": 0.2919,
+      "delta": 0.0123
     }
   }
 }

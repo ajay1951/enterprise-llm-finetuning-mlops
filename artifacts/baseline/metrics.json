@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "timestamp": "2026-10-05T06:46:47.145899+00:00",
-    "git_sha": "6879f976cd0f00b2c18e282257b47d40f77e7670",
+    "timestamp": "2026-10-05T09:16:56.455582+00:00",
+    "git_sha": "9adfc6469b117d56ac9bf6508194d02fa631da9a",
     "model_version": "Qwen/Qwen2.5-0.5B-baseline",
     "dataset_version": "v1.0",
     "judge_metadata": {
@@ -11,9 +11,9 @@
   "objective": {
     "total_samples": 10,
     "avg_exact_match": 0.0,
-    "avg_rougeL": 0.0,
-    "avg_semantic_similarity": 0.0719,
-    "avg_composite_quality_score": 0.2216
+    "avg_rougeL": 0.1097,
+    "avg_semantic_similarity": 0.0825,
+    "avg_composite_quality_score": 0.2796
   },
   "judge": null
 }

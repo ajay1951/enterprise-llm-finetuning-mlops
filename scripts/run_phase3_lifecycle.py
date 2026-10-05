@@ -55,7 +55,9 @@ def get_environment_info() -> dict:
 
 def main():
     print("=" * 70, flush=True)
-    print("ForgeLLM Phase 3: Evidence-Backed LLM Lifecycle & Serving System", flush=True)
+    print(
+        "ForgeLLM Phase 3: Evidence-Backed LLM Lifecycle & Serving System", flush=True
+    )
     print("=" * 70, flush=True)
 
     config_path = "configs/presets/micro_qlora.yaml"
@@ -68,18 +70,25 @@ def main():
     print("\n[1/7] Recording Environment Diagnostic...", flush=True)
     env_info = get_environment_info()
     os.makedirs("artifacts/fine_tuning", exist_ok=True)
-    with open("artifacts/fine_tuning/environment_info.json", "w", encoding="utf-8") as f:
+    with open(
+        "artifacts/fine_tuning/environment_info.json", "w", encoding="utf-8"
+    ) as f:
         json.dump(env_info, f, indent=2)
     print(f"  OS: {env_info['os']} | Python: {env_info['python_version']}", flush=True)
-    print(f"  PyTorch: {env_info['torch_version']} | CUDA: {env_info['cuda_available']} ({env_info.get('gpu_name')})", flush=True)
+    print(
+        f"  PyTorch: {env_info['torch_version']} | CUDA: {env_info['cuda_available']} ({env_info.get('gpu_name')})",
+        flush=True,
+    )
 
     # --------------------------------------------------------------------------
     # Step 2: Baseline Model Evaluation
     # --------------------------------------------------------------------------
     print("\n[2/7] Running Baseline Model Evaluation...", flush=True)
     os.makedirs("artifacts/baseline", exist_ok=True)
-    
-    loader = ModelLoader(config.model.name, trust_remote_code=config.model.trust_remote_code)
+
+    loader = ModelLoader(
+        config.model.name, trust_remote_code=config.model.trust_remote_code
+    )
     tokenizer = loader.load_tokenizer()
     q_config = get_quantization_config(config.quantization)
     base_model = loader.load_model(quantization_config=q_config)
@@ -92,7 +101,7 @@ def main():
         judge=judge,
     )
     base_results = base_evaluator.evaluate_test_set(dataset_path, "artifacts/baseline")
-    
+
     # Save baseline provenance metadata
     base_metadata = {
         "model": config.model.name,
@@ -105,14 +114,22 @@ def main():
     }
     with open("artifacts/baseline/metadata.json", "w", encoding="utf-8") as f:
         json.dump(base_metadata, f, indent=2)
-    print(f"  Baseline Avg Composite Score: {base_results['aggregate_metrics']['avg_composite_quality_score']}", flush=True)
-    print(f"  Baseline Avg Semantic Similarity: {base_results['aggregate_metrics']['avg_semantic_similarity']}", flush=True)
+    print(
+        f"  Baseline Avg Composite Score: {base_results['aggregate_metrics']['avg_composite_quality_score']}",
+        flush=True,
+    )
+    print(
+        f"  Baseline Avg Semantic Similarity: {base_results['aggregate_metrics']['avg_semantic_similarity']}",
+        flush=True,
+    )
 
     # Free baseline model VRAM before training
     del base_model
     del base_evaluator
     import gc
+
     import torch
+
     gc.collect()
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
@@ -123,7 +140,7 @@ def main():
     print("\n[3/7] Executing Real Micro Fine-Tuning Experiment...", flush=True)
     trainer = ForgeTrainer(config_path)
     trainer.prepare_dataset(dataset_path, dataset_path)
-    
+
     start_time = datetime.datetime.now(datetime.UTC)
     trainer.train()
     end_time = datetime.datetime.now(datetime.UTC)
@@ -154,7 +171,9 @@ def main():
         "lora_rank": config.lora.r,
         "lora_alpha": config.lora.alpha,
     }
-    with open("artifacts/fine_tuning/training_metrics.json", "w", encoding="utf-8") as f:
+    with open(
+        "artifacts/fine_tuning/training_metrics.json", "w", encoding="utf-8"
+    ) as f:
         json.dump(training_metrics, f, indent=2)
     shutil.copy(config_path, "artifacts/fine_tuning/training_config.yaml")
 
@@ -165,17 +184,20 @@ def main():
 - **Epochs**: {config.training.num_train_epochs}
 - **Duration**: {duration_secs:.2f} seconds
 - **Seed**: {config.training.seed}
-- **Hardware**: {env_info.get('gpu_name')} ({env_info.get('os')})
+- **Hardware**: {env_info.get("gpu_name")} ({env_info.get("os")})
 """
     with open("artifacts/fine_tuning/README.md", "w", encoding="utf-8") as f:
         f.write(readme_content)
-    print(f"  Fine-Tuning completed in {duration_secs:.2f}s | Adapter saved to {adapter_dir}")
+    print(
+        f"  Fine-Tuning completed in {duration_secs:.2f}s | Adapter saved to {adapter_dir}"
+    )
 
     # --------------------------------------------------------------------------
     # Step 4: Model Export & Merge
     # --------------------------------------------------------------------------
     print("\n[4/7] Exporting and Merging Fine-Tuned Model...", flush=True)
     from forgellm.models.registry import ModelRegistry
+
     local_registry = ModelRegistry()
     reg_entry = local_registry.register(
         model_name="forgellm-qwen-phase3",
@@ -195,7 +217,7 @@ def main():
     exported_path = exporter.export_merged_model(
         f"forgellm-qwen-phase3:{reg_entry['version']}", export_out
     )
-    
+
     export_metadata = {
         "model_name": "forgellm-qwen-phase3",
         "version": reg_entry["version"],
@@ -207,14 +229,14 @@ def main():
     }
     with open("artifacts/model/metadata.json", "w", encoding="utf-8") as f:
         json.dump(export_metadata, f, indent=2)
-    
+
     with open("artifacts/model/README.md", "w", encoding="utf-8") as f:
         f.write(f"""# Exported Model Artifacts
 - **Base Model**: {config.model.name}
 - **Adapter Source**: {adapter_dir}
 - **Export Location**: {export_out}
 - **Format**: PyTorch standalone weights
-- **Export Timestamp**: {export_metadata['exported_at']}
+- **Export Timestamp**: {export_metadata["exported_at"]}
 """)
     print(f"  Model merged and exported to {export_out}", flush=True)
 
@@ -229,8 +251,13 @@ def main():
             run_id=f"phase3-run-{config.training.seed}",
             model_name=model_name,
         )
-        registry.promote_model(model_name, version=int(version) if str(version).isdigit() else version)
-        print(f"  Model '{model_name}' version {version} registered & promoted to Production alias.", flush=True)
+        registry.promote_model(
+            model_name, version=int(version) if str(version).isdigit() else version
+        )
+        print(
+            f"  Model '{model_name}' version {version} registered & promoted to Production alias.",
+            flush=True,
+        )
     except Exception as e:
         print(f"  MLflow registry record logged (status note: {e})", flush=True)
 
@@ -239,12 +266,15 @@ def main():
     # --------------------------------------------------------------------------
     print("\n[6/7] Evaluating Fine-Tuned Model...")
     os.makedirs("artifacts/fine_tuned", exist_ok=True)
-    
+
     # Reload base model for fine-tuned evaluation
-    loader = ModelLoader(config.model.name, trust_remote_code=config.model.trust_remote_code)
+    loader = ModelLoader(
+        config.model.name, trust_remote_code=config.model.trust_remote_code
+    )
     eval_base_model = loader.load_model(quantization_config=q_config)
     try:
         from peft import PeftModel
+
         ft_model = PeftModel.from_pretrained(eval_base_model, adapter_dir)
     except Exception:
         ft_model = eval_base_model
@@ -256,7 +286,7 @@ def main():
         judge=judge,
     )
     ft_results = ft_evaluator.evaluate_test_set(dataset_path, "artifacts/fine_tuned")
-    
+
     ft_metadata = {
         "model": config.model.name,
         "model_version": f"{config.model.name}-finetuned",
@@ -278,8 +308,11 @@ def main():
     analyzer = RegressionAnalyzer(base_results, ft_results)
     reg_report_payload = analyzer.generate_report("artifacts/quality_gate")
     if os.path.exists("artifacts/quality_gate/regression_report.md"):
-        shutil.copy("artifacts/quality_gate/regression_report.md", "artifacts/quality_gate/report.md")
-    
+        shutil.copy(
+            "artifacts/quality_gate/regression_report.md",
+            "artifacts/quality_gate/report.md",
+        )
+
     b_agg = base_results["aggregate_metrics"]
     f_agg = ft_results["aggregate_metrics"]
 
@@ -288,7 +321,9 @@ def main():
         "baseline_model": config.model.name,
         "finetuned_model": f"{config.model.name}-finetuned",
         "dataset": dataset_path,
-        "status": "PASSED" if f_agg["avg_composite_quality_score"] >= b_agg["avg_composite_quality_score"] else "FLAGGED",
+        "status": "PASSED"
+        if f_agg["avg_composite_quality_score"] >= b_agg["avg_composite_quality_score"]
+        else "FLAGGED",
         "comparison": {
             "exact_match": {
                 "baseline": b_agg["avg_exact_match"],
@@ -303,12 +338,19 @@ def main():
             "semantic_similarity": {
                 "baseline": b_agg["avg_semantic_similarity"],
                 "finetuned": f_agg["avg_semantic_similarity"],
-                "delta": round(f_agg["avg_semantic_similarity"] - b_agg["avg_semantic_similarity"], 4),
+                "delta": round(
+                    f_agg["avg_semantic_similarity"] - b_agg["avg_semantic_similarity"],
+                    4,
+                ),
             },
             "composite_quality_score": {
                 "baseline": b_agg["avg_composite_quality_score"],
                 "finetuned": f_agg["avg_composite_quality_score"],
-                "delta": round(f_agg["avg_composite_quality_score"] - b_agg["avg_composite_quality_score"], 4),
+                "delta": round(
+                    f_agg["avg_composite_quality_score"]
+                    - b_agg["avg_composite_quality_score"],
+                    4,
+                ),
             },
         },
     }
@@ -321,7 +363,9 @@ def main():
     print(f"{'Metric':<25} | {'Baseline':<12} | {'Fine-Tuned':<12} | {'Delta':<10}")
     print("-" * 70)
     for m, vals in qgate_summary["comparison"].items():
-        print(f"{m:<25} | {vals['baseline']:<12.4f} | {vals['finetuned']:<12.4f} | {vals['delta']:+<10.4f}")
+        print(
+            f"{m:<25} | {vals['baseline']:<12.4f} | {vals['finetuned']:<12.4f} | {vals['delta']:+<10.4f}"
+        )
     print("=" * 70)
     print(f"Quality Gate Status: {qgate_summary['status']}")
 
@@ -340,4 +384,3 @@ if __name__ == "__main__":
         traceback.print_exc()
         print("=" * 60, flush=True)
         sys.exit(1)
-
