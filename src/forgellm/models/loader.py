@@ -45,15 +45,18 @@ class ModelLoader:
         except Exception as e:
             raise RuntimeError(f"Failed to load tokenizer for {self.model_name}: {e}")
 
-    def load_model(self, quantization_config=None) -> PreTrainedModel:
+    def load_model(self, quantization_config=None, **kwargs) -> PreTrainedModel:
         try:
+            device_map = kwargs.pop(
+                "device_map",
+                "auto" if (self.cuda_available and quantization_config) else None,
+            )
             model = AutoModelForCausalLM.from_pretrained(  # nosec B615
                 self.model_name,
                 quantization_config=quantization_config,
                 trust_remote_code=self.trust_remote_code,
-                device_map="auto"
-                if self.cuda_available and quantization_config
-                else None,
+                device_map=device_map,
+                **kwargs,
             )
             return model
         except Exception as e:

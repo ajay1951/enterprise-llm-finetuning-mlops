@@ -17,7 +17,7 @@ from transformers import set_seed
 
 try:
     from trl import SFTConfig, SFTTrainer
-except ImportError:  # pragma: no cover
+except (ImportError, RuntimeError, Exception):  # pragma: no cover
     SFTConfig = None
     SFTTrainer = None
 
@@ -63,9 +63,12 @@ class ForgeTrainer:
             json.dump(metadata, f, indent=2)
         print(f"Run metadata saved to {metadata_path}")
 
-    def prepare_dataset(self, train_path: str, val_path: str):
+    def prepare_dataset(self, train_path: str, val_path: str = ""):
+        global Dataset
+        if Dataset is None:
+            from datasets import Dataset
         self.train_dataset = Dataset.from_json(train_path)
-        if os.path.exists(val_path):
+        if val_path and os.path.exists(val_path):
             self.eval_dataset = Dataset.from_json(val_path)
 
     def _apply_oom_guardrails(self):
@@ -75,16 +78,24 @@ class ForgeTrainer:
         if torch.cuda.is_available():
             total_vram_gb = torch.cuda.get_device_properties(0).total_memory / (1024**3)
             print(f"[OOM Guardrail] Detected GPU VRAM: {total_vram_gb:.2f} GB")
+            import importlib.util
+
+            has_bnb = importlib.util.find_spec("bitsandbytes") is not None
             if total_vram_gb < 6.0:
-                print(
-                    "[OOM Guardrail] VRAM < 6GB. Enabling micro-batch size = 1 and 4-bit QLoRA to prevent CUDA OOM."
-                )
                 self.config.training.per_device_train_batch_size = 1
                 self.config.training.gradient_accumulation_steps = max(
                     4, self.config.training.gradient_accumulation_steps
                 )
-                self.config.quantization.enabled = True
-                self.config.quantization.bits = 4
+                if has_bnb:
+                    print(
+                        "[OOM Guardrail] VRAM < 6GB. Enabling micro-batch size = 1 and 4-bit QLoRA to prevent CUDA OOM."
+                    )
+                    self.config.quantization.enabled = True
+                    self.config.quantization.bits = 4
+                else:
+                    print(
+                        "[OOM Guardrail] VRAM < 6GB. Enabling micro-batch size = 1 (16-bit LoRA mode; bitsandbytes unavailable on host)."
+                    )
 
     def train(self, callbacks: list | None = None):
         # 0. Save Metadata & Apply Guardrails
@@ -122,7 +133,7 @@ class ForgeTrainer:
             eval_strategy="steps" if self.config.training.eval_steps > 0 else "no",
             save_strategy="steps" if self.config.training.save_steps > 0 else "no",
             seed=self.config.training.seed,
-            report_to="mlflow",
+            report_to="none",
             max_length=self.config.dataset.max_seq_length,
         )
 
@@ -140,37 +151,56 @@ class ForgeTrainer:
             for cb in callbacks:
                 self.trainer.add_callback(cb)
 
-        print("\nStarting Training...")
-        mlflow.set_tracking_uri(self.config.training.mlflow_tracking_uri)
-        mlflow.set_experiment(self.config.training.experiment_name)
+        print("\nStarting Training...", flush=True)
+        global mlflow
+        if mlflow is None:
+            try:
+                import mlflow as _mlflow
 
-        # Determine run name
-        commit_sha = self._get_git_commit()
-        run_name = (
-            f"run_{commit_sha[:7]}"
-            if commit_sha != "unknown"
-            else f"run_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        )
+                mlflow = _mlflow
+            except ImportError:
+                mlflow = None
 
-        with mlflow.start_run(run_name=run_name) as run:
-            self.active_run_id = run.info.run_id
+        if mlflow is not None and self.config.training.mlflow_tracking_uri:
+            try:
+                mlflow.set_tracking_uri(self.config.training.mlflow_tracking_uri)
+                mlflow.set_experiment(self.config.training.experiment_name)
 
-            # Flatten config for MLflow
-            def flatten_dict(d, parent_key="", sep="."):
-                items = []
-                for k, v in d.items():
-                    new_key = f"{parent_key}{sep}{k}" if parent_key else k
-                    if isinstance(v, dict):
-                        items.extend(flatten_dict(v, new_key, sep=sep).items())
-                    else:
-                        items.append((new_key, v))
-                return dict(items)
+                # Determine run name
+                commit_sha = self._get_git_commit()
+                run_name = (
+                    f"run_{commit_sha[:7]}"
+                    if commit_sha != "unknown"
+                    else f"run_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                )
 
-            mlflow.log_params(flatten_dict(self.config.model_dump()))
-            mlflow.set_tag("git_commit", commit_sha)
-            mlflow.set_tag("model_version", self.config.model.model_version)
-            mlflow.set_tag("dataset_version", self.config.dataset.version)
+                with mlflow.start_run(run_name=run_name) as run:
+                    self.active_run_id = run.info.run_id
 
+                    # Flatten config for MLflow
+                    def flatten_dict(d, parent_key="", sep="."):
+                        items = []
+                        for k, v in d.items():
+                            new_key = f"{parent_key}{sep}{k}" if parent_key else k
+                            if isinstance(v, dict):
+                                items.extend(flatten_dict(v, new_key, sep=sep).items())
+                            else:
+                                items.append((new_key, v))
+                        return dict(items)
+
+                    mlflow.log_params(flatten_dict(self.config.model_dump()))
+                    mlflow.set_tag("git_commit", commit_sha)
+                    mlflow.set_tag("model_version", self.config.model.model_version)
+                    mlflow.set_tag("dataset_version", self.config.dataset.version)
+
+                    self.trainer.train()
+            except Exception as e:
+                print(
+                    f"MLflow tracking notice: {e}. Executing trainer.train()...",
+                    flush=True,
+                )
+                self.trainer.train()
+        else:
             self.trainer.train()
 
     def _prune_old_checkpoints(self, max_to_keep: int = 3):

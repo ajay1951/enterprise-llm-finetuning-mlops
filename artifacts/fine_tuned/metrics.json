@@ -1,0 +1,19 @@
+{
+  "metadata": {
+    "timestamp": "2026-10-05T06:49:01.634432+00:00",
+    "git_sha": "6879f976cd0f00b2c18e282257b47d40f77e7670",
+    "model_version": "Qwen/Qwen2.5-0.5B-finetuned",
+    "dataset_version": "v1.0",
+    "judge_metadata": {
+      "status": "disabled"
+    }
+  },
+  "objective": {
+    "total_samples": 10,
+    "avg_exact_match": 0.0,
+    "avg_rougeL": 0.0,
+    "avg_semantic_similarity": 0.0796,
+    "avg_composite_quality_score": 0.2239
+  },
+  "judge": null
+}

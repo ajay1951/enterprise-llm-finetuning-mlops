@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  forgellm-vllm-serving:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: forgellm/vllm-serving:latest
+    container_name: forgellm-vllm-serving
+    ports:
+      - "8000:8000"
+    environment:
+      - HUGGING_FACE_HUB_TOKEN=${HF_TOKEN:-}
+      - VLLM_LOGGING_LEVEL=INFO
+    volumes:
+      - ~/.cache/huggingface:/root/.cache/huggingface
+      - ./config.yaml:/app/config.yaml:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\" || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s

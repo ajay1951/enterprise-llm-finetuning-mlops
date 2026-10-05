@@ -11,7 +11,7 @@ except ImportError:  # pragma: no cover
 
 try:
     from trl import DPOConfig, DPOTrainer
-except ImportError:  # pragma: no cover
+except (ImportError, RuntimeError, Exception):  # pragma: no cover
     DPOConfig = None
     DPOTrainer = None
 

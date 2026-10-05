@@ -1,0 +1,141 @@
+{
+  "metadata": {
+    "timestamp": "2026-10-05T06:46:47.145899+00:00",
+    "git_sha": "6879f976cd0f00b2c18e282257b47d40f77e7670",
+    "model_version": "Qwen/Qwen2.5-0.5B-baseline",
+    "dataset_version": "v1.0",
+    "judge_metadata": {
+      "status": "disabled"
+    }
+  },
+  "aggregate_metrics": {
+    "total_samples": 10,
+    "avg_exact_match": 0.0,
+    "avg_rougeL": 0.0,
+    "avg_semantic_similarity": 0.0719,
+    "avg_composite_quality_score": 0.2216
+  },
+  "aggregate_judge_metrics": null,
+  "results": [
+    {
+      "sample_id": 1,
+      "prompt": "What is ForgeLLM?",
+      "expected": "ForgeLLM is an enterprise-grade LLM fine-tuning and evaluation platform designed for reproducibility and production readiness.",
+      "generated": "system\nYou are a helpful assistant.\nuser\nWhat is ForgeLLM?\nassistant\nForgeLLM is a language model that can generate human-like text based on a given input. ForgeLLM is designed to be a powerful tool for developers and researchers who need to generate human-like text quickly and efficiently. ForgeLLM uses a combination of natural language processing (NLP) techniques and machine learning algorithms to",
+      "objective_metrics": {
+        "exact_match": 0.0,
+        "rougeL": 0.0,
+        "semantic_similarity": 0.0909,
+        "composite_quality_score": 0.2273
+      }
+    },
+    {
+      "sample_id": 2,
+      "prompt": "How does LoRA work in parameter-efficient fine-tuning?",
+      "expected": "LoRA freezes the pre-trained model weights and injects trainable rank decomposition matrices into Transformer layers, drastically reducing trainable parameters.",
+      "generated": "system\nYou are a helpful assistant.\nuser\nHow does LoRA work in parameter-efficient fine-tuning?\nassistant\nLoRA is a technique that allows for efficient fine-tuning of language models. It works by replacing the original model with a modified version that is trained on a smaller dataset. The modified model is then fine-tuned on a larger dataset, which is much larger than the original model. LoRA allows for faster training times",
+      "objective_metrics": {
+        "exact_match": 0.0,
+        "rougeL": 0.0,
+        "semantic_similarity": 0.0462,
+        "composite_quality_score": 0.2139
+      }
+    },
+    {
+      "sample_id": 3,
+      "prompt": "What is the purpose of QLoRA?",
+      "expected": "QLoRA quantizes the frozen base model to 4-bit NormalFloat precision while keeping LoRA adapters in 16-bit brain floating point, allowing fine-tuning on consumer GPUs.",
+      "generated": "system\nYou are a helpful assistant.\nuser\nWhat is the purpose of QLoRA?\nassistant\nThe purpose of QLoRA is to improve the performance of QLoRA by leveraging the power of quantum computing. QLoRA is a quantum machine learning algorithm that uses quantum computing to accelerate the training of deep neural networks. By leveraging the power of quantum computing, QLoRA can significantly improve the speed and accuracy of",
+      "objective_metrics": {
+        "exact_match": 0.0,
+        "rougeL": 0.0,
+        "semantic_similarity": 0.0492,
+        "composite_quality_score": 0.2148
+      }
+    },
+    {
+      "sample_id": 4,
+      "prompt": "What is the role of an LLM evaluation objective metric?",
+      "expected": "Objective evaluation metrics such as Exact Match, ROUGE-L, and token semantic similarity provide deterministic, reproducible regression testing.",
+      "generated": "system\nYou are a helpful assistant.\nuser\nWhat is the role of an LLM evaluation objective metric?\nassistant\nThe role of an LLM evaluation objective metric is to provide a clear and concise way to measure the performance of an LLM model. It helps to ensure that the evaluation process is objective and fair, and that the results are reliable and comparable across different models and datasets. The metric should be easy to understand and interpret,",
+      "objective_metrics": {
+        "exact_match": 0.0,
+        "rougeL": 0.0,
+        "semantic_similarity": 0.0678,
+        "composite_quality_score": 0.2203
+      }
+    },
+    {
+      "sample_id": 5,
+      "prompt": "Explain how MLflow Model Registry tracks fine-tuned LLM artifacts.",
+      "expected": "MLflow Model Registry centralizes model lineage, versioning, metadata, and production deployment alias promotion across experiments.",
+      "generated": "system\nYou are a helpful assistant.\nuser\nExplain how MLflow Model Registry tracks fine-tuned LLM artifacts.\nassistant\nMLflow Model Registry tracks fine-tuned LLM artifacts by storing the model's weights and hyperparameters in a JSON file. The model's weights are stored in a JSON file that contains the model's weights and hyperparameters. The hyperparameters are stored in a JSON file that contains the hyperparameters used to train the model",
+      "objective_metrics": {
+        "exact_match": 0.0,
+        "rougeL": 0.0,
+        "semantic_similarity": 0.087,
+        "composite_quality_score": 0.2261
+      }
+    },
+    {
+      "sample_id": 6,
+      "prompt": "What is an OOM guardrail in LLM training?",
+      "expected": "An OOM guardrail dynamically assesses GPU VRAM availability before execution, automatically reducing batch sizes or enabling 4-bit quantization to prevent memory allocation crashes.",
+      "generated": "system\nYou are a helpful assistant.\nuser\nWhat is an OOM guardrail in LLM training?\nassistant\nAn OOM guardrail is a mechanism used in LLM training to prevent the system from crashing due to out-of-memory errors. It is a technique that ensures that the system does not run out of memory and continues to execute even if it encounters a memory error. The OOM guardrail is implemented using a combination of",
+      "objective_metrics": {
+        "exact_match": 0.0,
+        "rougeL": 0.0,
+        "semantic_similarity": 0.0938,
+        "composite_quality_score": 0.2281
+      }
+    },
+    {
+      "sample_id": 7,
+      "prompt": "What is the purpose of a quality gate before model deployment?",
+      "expected": "A quality gate enforces empirical performance criteria such as minimum accuracy, bounded loss, and regression thresholds against established baselines before automated promotion.",
+      "generated": "system\nYou are a helpful assistant.\nuser\nWhat is the purpose of a quality gate before model deployment?\nassistant\nThe purpose of a quality gate before model deployment is to ensure that the model is free of errors and bugs before it is deployed to production. This helps to prevent issues such as data inconsistencies, incorrect predictions, or other problems that can arise from deploying a model to production. By ensuring that the model is free of errors and",
+      "objective_metrics": {
+        "exact_match": 0.0,
+        "rougeL": 0.0,
+        "semantic_similarity": 0.1111,
+        "composite_quality_score": 0.2333
+      }
+    },
+    {
+      "sample_id": 8,
+      "prompt": "How does vLLM optimize inference throughput?",
+      "expected": "vLLM uses PagedAttention to manage attention key-value memory with near-zero waste, enabling continuous batching and high-concurrency token generation.",
+      "generated": "system\nYou are a helpful assistant.\nuser\nHow does vLLM optimize inference throughput?\nassistant\nvLLM uses a combination of techniques to optimize inference throughput, including:\n\n1. **Parallelization**: vLLM can take advantage of multiple cores or GPUs to process multiple inference requests simultaneously. This is achieved through techniques such as data parallelism, which allows vLLM to distribute the workload across multiple nodes or processes",
+      "objective_metrics": {
+        "exact_match": 0.0,
+        "rougeL": 0.0,
+        "semantic_similarity": 0.0469,
+        "composite_quality_score": 0.2141
+      }
+    },
+    {
+      "sample_id": 9,
+      "prompt": "What is DPO in LLM post-training?",
+      "expected": "Direct Preference Optimization (DPO) aligns language models with human preferences by directly optimizing a policy against chosen and rejected response pairs without a separate reward model.",
+      "generated": "system\nYou are a helpful assistant.\nuser\nWhat is DPO in LLM post-training?\nassistant\nDPO stands for \"Data Preprocessing\" in LLM post-training. It is the process of cleaning, transforming, and preparing data for use in machine learning models. This includes tasks such as removing duplicates, handling missing values, and normalizing data. The goal of DPO is to ensure that the data is clean",
+      "objective_metrics": {
+        "exact_match": 0.0,
+        "rougeL": 0.0,
+        "semantic_similarity": 0.0278,
+        "composite_quality_score": 0.2083
+      }
+    },
+    {
+      "sample_id": 10,
+      "prompt": "How do you verify deterministic model generation?",
+      "expected": "Deterministic generation is achieved by setting temperature to 0.0, disabling sampling, and establishing fixed random seeds across PyTorch and Transformers.",
+      "generated": "system\nYou are a helpful assistant.\nuser\nHow do you verify deterministic model generation?\nassistant\nYou can verify deterministic model generation by checking the output of the model. If the model is deterministic, the output should be the same for any given input. You can also check the model's behavior by running it on a small dataset and comparing the results to the expected output.\u7a3d\n Comey\nYou are a helpful assistant",
+      "objective_metrics": {
+        "exact_match": 0.0,
+        "rougeL": 0.0,
+        "semantic_similarity": 0.0984,
+        "composite_quality_score": 0.2295
+      }
+    }
+  ]
+}

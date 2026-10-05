@@ -61,8 +61,8 @@ class ForgeEvaluator:
         else:
             self.scorer = None
 
-    def generate_response(self, prompt: str, max_new_tokens: int = 256) -> str:
-        """Generate response deterministically using greedy decoding (temperature=0.0)."""
+    def generate_response(self, prompt: str, max_new_tokens: int = 64) -> str:
+        """Generate response deterministically using greedy decoding (do_sample=False)."""
         messages = [{"role": "user", "content": prompt}]
         try:
             prompt_formatted = self.tokenizer.apply_chat_template(
@@ -86,8 +86,8 @@ class ForgeEvaluator:
             outputs = self.model.generate(
                 **inputs,
                 max_new_tokens=max_new_tokens,
-                temperature=0.0,
                 do_sample=False,
+                eos_token_id=getattr(self.tokenizer, "eos_token_id", None),
                 pad_token_id=getattr(self.tokenizer, "eos_token_id", None),
             )
 
@@ -212,6 +212,11 @@ class ForgeEvaluator:
                     total_rouge += obj_metrics["rougeL"]
                     total_sim += obj_metrics["semantic_similarity"]
                     total_composite += obj_metrics["composite_quality_score"]
+
+                    print(
+                        f"  [Evaluator] Evaluated sample {line_idx} | composite: {obj_metrics['composite_quality_score']:.2f}",
+                        flush=True,
+                    )
 
                     record_payload: dict[str, Any] = {
                         "sample_id": line_idx,

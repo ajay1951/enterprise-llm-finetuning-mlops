@@ -3,6 +3,7 @@ import asyncio
 from typing import Dict, Any, AsyncGenerator, List
 from .backends.base import ModelServingBackend
 from .backends.transformers_backend import TransformersBackend
+from .backends.vllm_backend import VLLMBackend
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,8 @@ class InferenceEngine:
 
         if backend_type == "transformers":
             self.backend = TransformersBackend()
+        elif backend_type == "vllm":
+            self.backend = VLLMBackend()
         else:
             raise ValueError(f"Unsupported backend type: {backend_type}")
 

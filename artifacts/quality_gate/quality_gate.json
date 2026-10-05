@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-10-05T06:49:01.839589+00:00",
+  "baseline_model": "Qwen/Qwen2.5-0.5B",
+  "finetuned_model": "Qwen/Qwen2.5-0.5B-finetuned",
+  "dataset": "tests/fixtures/sample_dataset.jsonl",
+  "status": "PASSED",
+  "comparison": {
+    "exact_match": {
+      "baseline": 0.0,
+      "finetuned": 0.0,
+      "delta": 0.0
+    },
+    "rougeL": {
+      "baseline": 0.0,
+      "finetuned": 0.0,
+      "delta": 0.0
+    },
+    "semantic_similarity": {
+      "baseline": 0.0719,
+      "finetuned": 0.0796,
+      "delta": 0.0077
+    },
+    "composite_quality_score": {
+      "baseline": 0.2216,
+      "finetuned": 0.2239,
+      "delta": 0.0023
+    }
+  }
+}

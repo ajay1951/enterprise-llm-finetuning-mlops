@@ -1,0 +1,34 @@
+{
+  "timestamp": "2026-10-05T06:49:01.804742+00:00",
+  "thresholds": {
+    "max_rouge_degradation": 0.01,
+    "min_rouge_improvement": 0.0,
+    "max_exact_match_degradation": 0.02,
+    "min_exact_match_improvement": 0.0,
+    "max_semantic_similarity_degradation": 0.02,
+    "min_semantic_similarity_improvement": 0.0,
+    "max_composite_degradation": 0.02,
+    "min_composite_improvement": 0.0,
+    "max_judge_overall_degradation": 0.25,
+    "min_judge_overall_improvement": 0.0,
+    "max_safety_degradation": 0.0
+  },
+  "metrics": {
+    "base_rougeL": 0.0,
+    "ft_rougeL": 0.0,
+    "rougeL_delta": 0.0,
+    "base_exact_match": 0.0,
+    "ft_exact_match": 0.0,
+    "exact_match_delta": 0.0,
+    "base_semantic_similarity": 0.0719,
+    "ft_semantic_similarity": 0.0796,
+    "semantic_similarity_delta": 0.0077,
+    "base_composite_quality": 0.2216,
+    "ft_composite_quality": 0.2239,
+    "composite_quality_delta": 0.0023,
+    "judge_available": false
+  },
+  "status": "equivalent",
+  "passed": true,
+  "failure_reasons": []
+}

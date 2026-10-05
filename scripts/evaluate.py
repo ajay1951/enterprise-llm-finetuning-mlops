@@ -3,7 +3,10 @@ import json
 import os
 import sys
 
-from peft import PeftModel
+try:
+    from peft import PeftModel
+except ImportError:
+    PeftModel = None
 
 from forgellm.evaluation.evaluator import ForgeEvaluator
 from forgellm.evaluation.regression import RegressionAnalyzer
