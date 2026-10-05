@@ -1,6 +1,13 @@
 # ForgeLLM: Control Plane & Fine-Tuning Platform for Open LLMs
 
+[![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-ZeroGPU%20Live%20Demo-blue)](docs/huggingface-zerogpu-deployment.md)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12-blue)](https://www.python.org/)
+[![Tests](https://img.shields.io/badge/Tests-154%20Passing-brightgreen)](tests/)
+
 **ForgeLLM** is an open-source control plane and developer platform for managing the lifecycle of Large Language Models (LLMs). It provides a unified pipeline for dataset preparation, parameter-efficient LoRA/QLoRA Supervised Fine-Tuning (SFT), automated objective and LLM-as-a-Judge evaluation, MLflow tracking, regression quality gates, and model lifecycle management.
+
+> 🌐 **Live Public Demo:** Try the interactive streaming demonstration on [Hugging Face ZeroGPU](docs/huggingface-zerogpu-deployment.md) running `Qwen/Qwen2.5-0.5B-Instruct` with dynamic transient GPU leasing.
 
 ---
 
