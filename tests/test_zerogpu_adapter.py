@@ -36,6 +36,7 @@ def test_zerogpu_load_model_success(
     mock_tok_from_pretrained.return_value = mock_tok
 
     mock_model = MagicMock()
+    mock_model.to.return_value = mock_model
     mock_model_from_pretrained.return_value = mock_model
 
     engine = ZeroGPUInferenceEngine(model_id="test/mock-model")

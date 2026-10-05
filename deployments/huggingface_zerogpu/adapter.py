@@ -55,15 +55,12 @@ class ZeroGPUInferenceEngine:
             )
 
             print(f"[ForgeLLM-ZeroGPU] Loading model weights: {self.model_id}")
+            dtype = torch.bfloat16 if torch.cuda.is_available() else torch.float32
             self.model = AutoModelForCausalLM.from_pretrained(
                 self.model_id,
-                torch_dtype="auto",
-                device_map="auto" if torch.cuda.is_available() else None,
+                torch_dtype=dtype,
                 trust_remote_code=True,
-                low_cpu_mem_usage=True,
-            )
-            if not torch.cuda.is_available() and self.device == "cpu":
-                self.model.to("cpu")
+            ).to(self.device)
             self.model.eval()
             self._is_loaded = True
             print(
