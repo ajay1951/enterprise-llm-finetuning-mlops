@@ -287,7 +287,9 @@ def build_demo():
                 tokens_box,
                 throughput_box,
             ],
-        ).then(fn=lambda: "", outputs=[msg_input])
+            api_name=False,
+            show_api=False,
+        ).then(fn=lambda: "", outputs=[msg_input], api_name=False, show_api=False)
 
         msg_input.submit(
             fn=chat_and_telemetry,
@@ -307,7 +309,9 @@ def build_demo():
                 tokens_box,
                 throughput_box,
             ],
-        ).then(fn=lambda: "", outputs=[msg_input])
+            api_name=False,
+            show_api=False,
+        ).then(fn=lambda: "", outputs=[msg_input], api_name=False, show_api=False)
 
         clear_btn.click(
             fn=clear_chat,
@@ -319,6 +323,8 @@ def build_demo():
                 tokens_box,
                 throughput_box,
             ],
+            api_name=False,
+            show_api=False,
         )
 
     return blocks_demo
@@ -328,10 +334,4 @@ demo = build_demo() if gr is not None else None
 
 if __name__ == "__main__":
     if demo is not None:
-        try:
-            demo.launch(server_name="0.0.0.0", server_port=7860, ssr_mode=False)
-        except TypeError:
-            try:
-                demo.launch(server_name="0.0.0.0", server_port=7860, ssr=False)
-            except TypeError:
-                demo.launch(server_name="0.0.0.0", server_port=7860)
+        demo.launch()
