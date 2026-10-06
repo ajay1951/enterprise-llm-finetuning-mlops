@@ -292,36 +292,52 @@ def test_ui_chat_and_telemetry_error(mock_gen_stream):
 
 # Concept-based Factuality Regression Suite
 def validate_vllm_concept(response: str) -> bool:
-    """Validate that response describes vLLM without false acronyms."""
+    """Validate that response describes vLLM in terms of LLM inference/serving while rejecting false claims."""
     lower = response.lower()
-    has_hallucination = "vegetable" in lower or "anthropic" in lower
+    has_hallucination = (
+        "vegetable" in lower
+        or "anthropic" in lower
+        or "versioned large" in lower
+        or "virtual language" in lower
+    )
     has_valid_concept = (
         "inference" in lower
         or "serving" in lower
         or "engine" in lower
+        or "pagedattention" in lower
         or "llm" in lower
     )
     return has_valid_concept and not has_hallucination
 
 
 def validate_ttft_concept(response: str) -> bool:
-    """Validate that TTFT is identified as Time To First Token."""
+    """Validate that TTFT is identified as Time To First Token while rejecting false definitions."""
     lower = response.lower()
-    has_hallucination = "tokenization transformer" in lower
+    has_hallucination = (
+        "tokenization transformer" in lower or "tokenization failure" in lower
+    )
     has_valid_concept = "time to first token" in lower or (
-        "first token" in lower and "latency" in lower
+        "first token" in lower and ("latency" in lower or "time" in lower)
     )
     return has_valid_concept and not has_hallucination
 
 
 def validate_lora_concept(response: str) -> bool:
-    """Validate that LoRA is identified as Low-Rank Adaptation."""
+    """Validate that LoRA is identified as Low-Rank Adaptation and rejects pruning/ranking/size-reduction claims."""
     lower = response.lower()
-    has_hallucination = "long short-term" in lower or "lstm" in lower
+    has_hallucination = (
+        "long short-term" in lower
+        or "lstm" in lower
+        or "pruning" in lower
+        or "ranking weights" in lower
+        or "reducing the size of the original model" in lower
+        or "reducing model size" in lower
+    )
     has_valid_concept = (
         "low-rank adaptation" in lower
         or "low rank" in lower
         or ("peft" in lower and "parameter" in lower)
+        or ("matrix" in lower and "freeze" in lower)
     )
     return has_valid_concept and not has_hallucination
 
@@ -353,32 +369,53 @@ def validate_training_vs_inference_concept(response: str) -> bool:
     return has_train and has_infer
 
 
-def test_factuality_concept_validators():
-    """Test the regression validation functions against sample answers."""
-    # vLLM
-    assert validate_vllm_concept(
-        "vLLM is a high-throughput LLM inference and serving library."
-    )
+def test_lora_validator_rejects_pruning_explanation():
+    bad_response = """
+    LoRA stands for Low-Rank Adaptation. In ForgeLLM, it works by reducing model size
+    through pruning techniques that remove less important weights from the architecture,
+    then ranking weights based on importance.
+    """
+    assert not validate_lora_concept(bad_response)
+
+
+def test_lora_validator_accepts_correct_explanation():
+    good_response = """
+    LoRA stands for Low-Rank Adaptation. It is a parameter-efficient fine-tuning (PEFT) method
+    that freezes the pretrained model weights and trains low-rank adapter decomposition matrices.
+    """
+    assert validate_lora_concept(good_response)
+
+
+def test_vllm_validator_rejects_false_acronyms():
     assert not validate_vllm_concept("vLLM stands for Vegetable Large Language Model.")
-
-    # TTFT
-    assert validate_ttft_concept(
-        "TTFT is Time to First Token, measuring the time until the first token is generated."
+    assert not validate_vllm_concept("vLLM stands for Versioned Large Language Model.")
+    assert not validate_vllm_concept(
+        "vLLM is an inference library developed by Anthropic."
     )
-    assert not validate_ttft_concept("TTFT is Tokenization Transformer Fine-Tuning.")
 
-    # LoRA
-    assert validate_lora_concept(
-        "LoRA is Low-Rank Adaptation, a parameter-efficient fine-tuning method."
+
+def test_vllm_validator_accepts_correct_explanation():
+    good_vllm = "vLLM is a high-throughput, low-latency LLM inference and serving engine with PagedAttention."
+    assert validate_vllm_concept(good_vllm)
+
+
+def test_ttft_validator_rejects_false_definitions():
+    assert not validate_ttft_concept(
+        "TTFT stands for Tokenization Transformer Fine-Tuning."
     )
-    assert not validate_lora_concept("LoRA is Long Short-Term Memory Regularization.")
+    assert not validate_ttft_concept("TTFT stands for Token Tokenization Failure.")
 
-    # MLflow
+
+def test_ttft_validator_accepts_correct_explanation():
+    good_ttft = "TTFT is Time to First Token, measuring latency from prompt submission until the first token is generated."
+    assert validate_ttft_concept(good_ttft)
+
+
+def test_factuality_concept_validators():
+    """Test standard valid assertions for MLflow and Training vs Inference."""
     assert validate_mlflow_concept(
-        "MLflow is an open source platform to manage the ML lifecycle including experiment tracking."
+        "MLflow is an open source platform to manage the ML lifecycle including experiment tracking and model registry."
     )
-
-    # Training vs Inference
     assert validate_training_vs_inference_concept(
-        "Training updates model weights on training data, while inference uses the trained model to generate predictions."
+        "Training updates model weights on training data via backpropagation, while inference uses the trained model to generate predictions."
     )
