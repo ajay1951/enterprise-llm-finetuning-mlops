@@ -12,25 +12,30 @@ ForgeLLM provides a lightweight, self-contained Gradio 5.x application in `deplo
 Public User / Client
         │
         ▼ (Web / REST API)
-┌───────────────────────────────────────┐
-│     Gradio 5.x Chat Interface         │
-│   (deployments/huggingface_zerogpu)   │
-└───────────────────┬───────────────────┘
-                    │
-                    ▼
-┌───────────────────────────────────────┐
-│       ZeroGPUInferenceEngine          │
-│    - @spaces.GPU transient leasing    │
-│    - ChatML prompt template builder   │
-│    - Streaming token iterator         │
-└───────────────────┬───────────────────┘
-                    │
-                    ▼
-┌───────────────────────────────────────┐
-│   Hugging Face ZeroGPU Infrastructure │
-│    - Dynamic NVIDIA A100/H100/L4 GPU  │
-│    - Qwen/Qwen2.5-0.5B-Instruct Model │
-└───────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────┐
+│     Gradio 5.x Interface (deployments/huggingface_zerogpu)             │
+│  ┌───────────────────────────────┬──────────────────────────────────┐  │
+│  │   Chatbot & Prompt Controls   │    Live Inference Telemetry      │  │
+│  │   - Multi-turn conversation   │    - TTFT (s) & Latency (s)      │  │
+│  │   - Sampling parameters       │    - Output Tokens & tok/s       │  │
+│  └───────────────────────────────┴──────────────────────────────────┘  │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                      ZeroGPUInferenceEngine                            │
+│    - @spaces.GPU transient leasing                                     │
+│    - ChatML prompt template builder                                    │
+│    - TextIteratorStreamer token generation                             │
+│    - Dynamic latency, TTFT, and throughput computation                 │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                 Hugging Face ZeroGPU Infrastructure                    │
+│    - Dynamic NVIDIA A100/H100/L4 GPU                                   │
+│    - Qwen/Qwen2.5-0.5B-Instruct Model in bfloat16                      │
+└────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---

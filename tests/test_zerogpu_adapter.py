@@ -109,3 +109,120 @@ def test_zerogpu_generate_stream_unloaded_failure():
         results = list(engine.generate_stream([{"role": "user", "content": "Hello"}]))
         assert len(results) == 1
         assert "Error: Model failed to load" in results[0][0]
+
+
+def test_ui_clear_chat():
+    from app import clear_chat
+
+    history, status, ttft, latency, tokens, throughput = clear_chat()
+    assert history == []
+    assert status == "🟢 Ready"
+    assert ttft == "—"
+    assert latency == "—"
+    assert tokens == "—"
+    assert throughput == "—"
+
+
+def test_ui_chat_and_telemetry_empty():
+    from app import chat_and_telemetry
+
+    results = list(
+        chat_and_telemetry(
+            message="   ",
+            history=[],
+            system_prompt="",
+            temperature=0.7,
+            max_tokens=128,
+            top_p=0.8,
+        )
+    )
+    assert len(results) == 1
+    hist, status, ttft, _lat, _tok, _spd = results[0]
+    assert hist == []
+    assert "Ready" in status
+    assert ttft == "—"
+
+
+@patch("app.engine.generate_stream")
+def test_ui_chat_and_telemetry_success(mock_gen_stream):
+    from app import chat_and_telemetry
+
+    mock_gen_stream.return_value = iter(
+        [
+            (
+                "Hello",
+                {
+                    "ttft_sec": 0.35,
+                    "latency_sec": 0.35,
+                    "tokens_generated": 1,
+                    "tokens_per_sec": 2.86,
+                },
+            ),
+            (
+                "Hello world",
+                {
+                    "ttft_sec": 0.35,
+                    "latency_sec": 0.85,
+                    "tokens_generated": 2,
+                    "tokens_per_sec": 2.35,
+                },
+            ),
+        ]
+    )
+
+    results = list(
+        chat_and_telemetry(
+            message="Hi",
+            history=[],
+            system_prompt="You are helpful.",
+            temperature=0.7,
+            max_tokens=128,
+            top_p=0.8,
+        )
+    )
+
+    # 2 streaming steps + 1 final complete step = 3 steps
+    assert len(results) == 3
+
+    # Step 1: Streaming
+    hist_1, status_1, ttft_1, lat_1, tok_1, spd_1 = results[0]
+    assert hist_1[-1]["content"] == "Hello"
+    assert status_1 == "⚡ Generating..."
+    assert ttft_1 == "0.35 s"
+    assert lat_1 == "0.35 s"
+    assert tok_1 == "1"
+    assert spd_1 == "2.9 tok/s"
+
+    # Step 3: Complete
+    hist_3, status_3, ttft_3, lat_3, tok_3, spd_3 = results[2]
+    assert hist_3[-1]["content"] == "Hello world"
+    assert status_3 == "✓ Complete"
+    assert ttft_3 == "0.35 s"
+    assert lat_3 == "0.85 s"
+    assert tok_3 == "2"
+    assert spd_3 == "2.4 tok/s"
+
+
+@patch("app.engine.generate_stream", side_effect=RuntimeError("CUDA OOM"))
+def test_ui_chat_and_telemetry_error(mock_gen_stream):
+    from app import chat_and_telemetry
+
+    results = list(
+        chat_and_telemetry(
+            message="Trigger crash",
+            history=[],
+            system_prompt="",
+            temperature=0.7,
+            max_tokens=128,
+            top_p=0.8,
+        )
+    )
+
+    assert len(results) == 1
+    _hist, status, ttft, lat, tok, spd = results[0]
+    assert "❌ Error" in status
+    assert "CUDA OOM" in status
+    assert ttft == "—"
+    assert lat == "—"
+    assert tok == "—"
+    assert spd == "—"

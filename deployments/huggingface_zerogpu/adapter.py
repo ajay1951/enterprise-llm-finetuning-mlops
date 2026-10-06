@@ -96,9 +96,12 @@ class ZeroGPUInferenceEngine:
             return
 
         # Ensure model is on CUDA with bfloat16 during ZeroGPU lease
-        if torch.cuda.is_available() and self.model is not None:
-            if next(self.model.parameters()).device.type != "cuda":
-                self.model.to(device="cuda", dtype=torch.bfloat16)
+        if (
+            torch.cuda.is_available()
+            and self.model is not None
+            and next(self.model.parameters()).device.type != "cuda"
+        ):
+            self.model.to(device="cuda", dtype=torch.bfloat16)
 
         # Input sanitization and bounds enforcement
         max_new_tokens = max(1, min(int(max_new_tokens), 512))

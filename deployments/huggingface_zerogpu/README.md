@@ -24,7 +24,14 @@ ForgeLLM is an enterprise-grade LLM fine-tuning, evaluation, regression testing,
 - **Model:** `Qwen/Qwen2.5-0.5B-Instruct`
 - **Inference Runtime:** PyTorch 2.5+ / Hugging Face Transformers with dynamic `@spaces.GPU` ZeroGPU transient leasing
 - **Prompt Format:** ChatML (`<|im_start|>user ... <|im_end|>`)
-- **Features:** Real-time token streaming, parameter controls (temperature, max tokens, nucleus sampling), and generation telemetry (Speed in tok/s, TTFT, Latency)
+- **Live Observability & Telemetry:**
+  - **Time to First Token (TTFT)** in seconds (`s`)
+  - **Total Generation Latency** in seconds (`s`)
+  - **Output Token Count**
+  - **Real-Time Throughput** in tokens per second (`tok/s`)
+  - **Live Generation State** (`🟢 Ready`, `⚡ Generating...`, `✓ Complete`, `❌ Error`)
+  - **Runtime Specifications** (Model, Engine, Device Precision)
+- **Features:** Real-time token streaming, parameter controls (temperature, max tokens, nucleus sampling), and dedicated inference observability metrics.
 
 ---
 
