@@ -17,13 +17,14 @@ except ImportError:
 
 from adapter import ZeroGPUInferenceEngine
 
-# Initialize inference engine instance and load model weights eagerly
+# Initialize inference engine instance (weights loaded lazily inside GPU execution boundary)
 engine = ZeroGPUInferenceEngine()
-engine.load_model()
 
 DEFAULT_SYSTEM_PROMPT = (
-    "You are ForgeLLM, an enterprise-grade AI assistant specialized in LLMOps, "
-    "fine-tuning pipelines, model evaluation, and production inference."
+    "You are ForgeLLM, an enterprise AI assistant specializing in LLMOps, "
+    "PEFT/LoRA fine-tuning, evaluation benchmarks, and high-performance inference. "
+    "Provide accurate, concise technical explanations. Never invent acronym expansions, "
+    "never fabricate authors or organizations, and clearly acknowledge uncertainty if a concept is unknown."
 )
 
 try:
@@ -150,7 +151,7 @@ def build_demo():
         gr.Markdown(
             """
             # ⚒️ ForgeLLM — Enterprise LLM Platform Demo
-            **Live Inference Observability & Telemetry Demo** powered by `Qwen/Qwen2.5-0.5B-Instruct` on **Hugging Face ZeroGPU**.
+            **Live Inference Observability & Telemetry Demo** powered by `Qwen/Qwen2.5-1.5B-Instruct` on **Hugging Face ZeroGPU**.
             """
         )
 
@@ -185,9 +186,9 @@ def build_demo():
                             label="Temperature",
                             minimum=0.0,
                             maximum=1.5,
-                            value=0.7,
+                            value=0.2,
                             step=0.05,
-                            info="Sampling randomness",
+                            info="Sampling randomness (0.0 for deterministic greedy decoding)",
                         )
                         tokens_slider = gr.Slider(
                             label="Max New Tokens",
@@ -201,7 +202,7 @@ def build_demo():
                             label="Top-p",
                             minimum=0.1,
                             maximum=1.0,
-                            value=0.8,
+                            value=0.9,
                             step=0.05,
                             info="Nucleus sampling threshold",
                         )
@@ -243,7 +244,7 @@ def build_demo():
                         interactive=False,
                     )
                     throughput_box = gr.Textbox(
-                        label="Throughput",
+                        label="End-to-End Throughput",
                         value="—",
                         interactive=False,
                     )
@@ -252,7 +253,7 @@ def build_demo():
                 gr.Markdown("### ⚙️ Runtime Specifications")
                 model_box = gr.Textbox(
                     label="Model",
-                    value="Qwen2.5-0.5B-Instruct",
+                    value="Qwen2.5-1.5B-Instruct",
                     interactive=False,
                 )
                 backend_box = gr.Textbox(
@@ -266,6 +267,9 @@ def build_demo():
                     label="Precision",
                     value="bfloat16" if "cuda" in engine.device else "float32",
                     interactive=False,
+                )
+                gr.Markdown(
+                    "💡 *Experimental demo model. Technical responses may require verification.*"
                 )
 
         # Wire event handlers

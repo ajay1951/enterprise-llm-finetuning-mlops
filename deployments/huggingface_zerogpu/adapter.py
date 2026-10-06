@@ -30,11 +30,22 @@ except (ImportError, AttributeError):
         return func
 
 
-DEFAULT_MODEL_ID = "Qwen/Qwen2.5-0.5B-Instruct"
+DEFAULT_MODEL_ID = "Qwen/Qwen2.5-1.5B-Instruct"
+
+# Known high-risk catastrophic hallucination patterns
+KNOWN_HALLUCINATIONS: list[tuple[str, ...]] = [
+    ("vegetable", "large", "language", "model"),
+    ("versioned", "large", "language", "model"),
+    ("virtual", "language", "learning", "model"),
+    ("anthropic", "developed", "vllm"),
+    ("token", "tokenization", "failure"),
+    ("tokenization", "transformer", "fine-tuning"),
+    ("long", "short-term", "memory", "regularization"),
+]
 
 
 class ZeroGPUInferenceEngine:
-    """Manages model loading and streaming generation within Hugging Face ZeroGPU constraints."""
+    """Manages lazy model loading and streaming generation within Hugging Face ZeroGPU constraints."""
 
     def __init__(self, model_id: str = DEFAULT_MODEL_ID):
         self.model_id = os.environ.get("FORGELLM_MODEL_ID", model_id)
@@ -43,17 +54,32 @@ class ZeroGPUInferenceEngine:
         self.model = None
         self._is_loaded = False
 
-    def load_model(self) -> bool:
-        """Load tokenizer and model weights onto appropriate device."""
-        if self._is_loaded:
+    def _ensure_tokenizer(self) -> bool:
+        """Ensure tokenizer is loaded on host without requiring GPU allocation."""
+        if self.tokenizer is not None:
             return True
-
         try:
             print(f"[ForgeLLM-ZeroGPU] Loading tokenizer: {self.model_id}")
             self.tokenizer = AutoTokenizer.from_pretrained(
                 self.model_id, trust_remote_code=True
             )
+            return True
+        except Exception as e:
+            print(
+                f"[ForgeLLM-ZeroGPU] Failed to load tokenizer {self.model_id}: {e}",
+                file=sys.stderr,
+            )
+            return False
 
+    def load_model(self) -> bool:
+        """Load tokenizer and model weights onto target device."""
+        if self._is_loaded and self.model is not None:
+            return True
+
+        if not self._ensure_tokenizer():
+            return False
+
+        try:
             print(f"[ForgeLLM-ZeroGPU] Loading model weights: {self.model_id}")
             dtype = torch.bfloat16 if torch.cuda.is_available() else torch.float32
             self.model = AutoModelForCausalLM.from_pretrained(
@@ -75,19 +101,35 @@ class ZeroGPUInferenceEngine:
             self._is_loaded = False
             return False
 
+    def check_factuality_guardrail(self, text: str) -> str | None:
+        """Inspect generated response for known catastrophic confabulations."""
+        text_lower = text.lower()
+        for pattern_tokens in KNOWN_HALLUCINATIONS:
+            if all(token in text_lower for token in pattern_tokens):
+                return (
+                    "\n\n> ⚠️ **Verification Advisory:** The generated response contained an "
+                    "inaccurate or unverified technical acronym expansion.\n"
+                    "> **Verified Reference:**\n"
+                    "> • **vLLM:** High-throughput, low-latency LLM serving engine featuring PagedAttention (UC Berkeley / vLLM project).\n"
+                    "> • **TTFT:** Time To First Token — latency metric measuring elapsed time from request dispatch to initial generated token.\n"
+                    "> • **LoRA:** Low-Rank Adaptation — parameter-efficient fine-tuning (PEFT) method freezing base weights and training rank decomposition matrices."
+                )
+        return None
+
     @gpu_decorator
     def generate_stream(
         self,
         messages: list[dict[str, str]],
         max_new_tokens: int = 512,
-        temperature: float = 0.7,
-        top_p: float = 0.8,
+        temperature: float = 0.2,
+        top_p: float = 0.9,
     ) -> Generator[tuple[str, dict[str, Any]], None, None]:
         """Generate response tokens with live telemetry.
 
         Yields:
             tuple of (accumulated_text: str, metrics: dict)
         """
+        # Lazy load weights inside GPU execution boundary if not already loaded
         if not self._is_loaded and not self.load_model():
             yield (
                 "Error: Model failed to load. Please check network and logs.",
@@ -95,7 +137,7 @@ class ZeroGPUInferenceEngine:
             )
             return
 
-        # Ensure model is on CUDA with bfloat16 during ZeroGPU lease
+        # Ensure model is moved to CUDA in bfloat16 during ZeroGPU lease
         if (
             torch.cuda.is_available()
             and self.model is not None
@@ -163,29 +205,44 @@ class ZeroGPUInferenceEngine:
         start_time = time.perf_counter()
         first_token_time = None
         accumulated_text = ""
-        token_count = 0
+        last_telemetry: dict[str, Any] = {}
 
         for new_text in streamer:
             if not new_text:
                 continue
             accumulated_text += new_text
-            token_count += 1
             if first_token_time is None:
                 first_token_time = time.perf_counter()
 
             now = time.perf_counter()
             elapsed_sec = max(0.001, now - start_time)
-            tokens_per_sec = token_count / elapsed_sec
+
+            # Accurate token counting via tokenizer
+            try:
+                exact_token_count = len(
+                    self.tokenizer.encode(accumulated_text, add_special_tokens=False)
+                )
+            except Exception:
+                exact_token_count = len(accumulated_text.split())
+
+            # End-to-End Throughput formula: output_tokens / total_latency
+            tokens_per_sec = exact_token_count / elapsed_sec
             ttft_sec = (first_token_time - start_time) if first_token_time else 0.0
 
-            telemetry = {
+            last_telemetry = {
                 "model": self.model_id,
                 "device": str(self.model.device),
-                "tokens_generated": token_count,
+                "tokens_generated": exact_token_count,
                 "latency_sec": round(elapsed_sec, 3),
                 "ttft_sec": round(ttft_sec, 3),
                 "tokens_per_sec": round(tokens_per_sec, 2),
             }
-            yield accumulated_text, telemetry
+            yield accumulated_text, last_telemetry
 
         thread.join()
+
+        # Check factuality guardrail upon completion
+        advisory = self.check_factuality_guardrail(accumulated_text)
+        if advisory:
+            accumulated_text += advisory
+            yield accumulated_text, last_telemetry

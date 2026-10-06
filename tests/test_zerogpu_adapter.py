@@ -17,14 +17,36 @@ sys.path.insert(
     ),
 )
 
-from adapter import ZeroGPUInferenceEngine
+from adapter import DEFAULT_MODEL_ID, ZeroGPUInferenceEngine
 
 
 def test_zerogpu_engine_init():
-    engine = ZeroGPUInferenceEngine(model_id="test/mock-model")
-    assert engine.model_id == "test/mock-model"
+    engine = ZeroGPUInferenceEngine()
+    assert engine.model_id == DEFAULT_MODEL_ID
+    assert "1.5B" in engine.model_id
     assert engine._is_loaded is False
     assert engine.device in ["cuda", "cpu"]
+
+
+def test_zerogpu_lazy_loading():
+    """Verify that model initialization does not eagerly load weights into memory."""
+    with (
+        patch("adapter.AutoTokenizer.from_pretrained") as mock_tok,
+        patch("adapter.AutoModelForCausalLM.from_pretrained") as mock_model,
+    ):
+        mock_tok.return_value = MagicMock()
+        mock_model.return_value = MagicMock()
+
+        engine = ZeroGPUInferenceEngine()
+        # Weights should not be loaded on init
+        assert engine._is_loaded is False
+        assert engine.model is None
+
+        # load_model() performs the lazy load
+        success = engine.load_model()
+        assert success is True
+        assert engine._is_loaded is True
+        assert engine.model is not None
 
 
 @patch("adapter.AutoTokenizer.from_pretrained")
@@ -58,6 +80,44 @@ def test_zerogpu_load_model_failure(mock_tok_from_pretrained):
     assert engine._is_loaded is False
 
 
+def test_zerogpu_factuality_guardrail():
+    """Verify detection of catastrophic hallucinations and pass-through of accurate content."""
+    engine = ZeroGPUInferenceEngine(model_id="test/mock-model")
+
+    # Hallucination 1: Vegetable LLM
+    bad_vllm = "vLLM stands for Vegetable Large Language Model designed for speed."
+    advisory = engine.check_factuality_guardrail(bad_vllm)
+    assert advisory is not None
+    assert "Verification Advisory" in advisory
+
+    # Hallucination 2: Anthropic developed vLLM
+    bad_author = "Anthropic developed vLLM as an open source engine."
+    assert engine.check_factuality_guardrail(bad_author) is not None
+
+    # Hallucination 3: TTFT confabulation
+    bad_ttft = "TTFT stands for Tokenization Transformer Fine-Tuning."
+    assert engine.check_factuality_guardrail(bad_ttft) is not None
+
+    # Hallucination 4: LoRA confabulation
+    bad_lora = "LoRA is Long Short-Term Memory Regularization for neural nets."
+    assert engine.check_factuality_guardrail(bad_lora) is not None
+
+    # Hallucination 5: Versioned LLM
+    bad_vllm_v2 = "vLLM stands for Versioned Large Language Model."
+    assert engine.check_factuality_guardrail(bad_vllm_v2) is not None
+
+    # Hallucination 6: Token Tokenization Failure
+    bad_ttft_v2 = "TTFT stands for Token Tokenization Failure."
+    assert engine.check_factuality_guardrail(bad_ttft_v2) is not None
+
+    # Valid factual text
+    good_text = (
+        "vLLM is a high-throughput LLM serving engine developed at UC Berkeley. "
+        "LoRA stands for Low-Rank Adaptation, and TTFT is Time To First Token."
+    )
+    assert engine.check_factuality_guardrail(good_text) is None
+
+
 @patch("adapter.TextIteratorStreamer")
 def test_zerogpu_generate_stream_mock(mock_streamer_cls):
     mock_tok = MagicMock()
@@ -70,6 +130,7 @@ def test_zerogpu_generate_stream_mock(mock_streamer_cls):
         "attention_mask": torch.tensor([[1, 1]]),
     }
     mock_tok.eos_token_id = 999
+    mock_tok.encode.side_effect = lambda text, **kw: [1] * len(text.split())
 
     mock_streamer = MagicMock()
     mock_streamer.__iter__.return_value = iter(["Hello", " world", "!"])
@@ -101,6 +162,7 @@ def test_zerogpu_generate_stream_mock(mock_streamer_cls):
     assert "tokens_per_sec" in telemetries[-1]
     assert "latency_sec" in telemetries[-1]
     assert "ttft_sec" in telemetries[-1]
+    assert telemetries[-1]["tokens_generated"] == 2  # 'Hello world!' has 2 words
 
 
 def test_zerogpu_generate_stream_unloaded_failure():
@@ -131,9 +193,9 @@ def test_ui_chat_and_telemetry_empty():
             message="   ",
             history=[],
             system_prompt="",
-            temperature=0.7,
+            temperature=0.2,
             max_tokens=128,
-            top_p=0.8,
+            top_p=0.9,
         )
     )
     assert len(results) == 1
@@ -175,9 +237,9 @@ def test_ui_chat_and_telemetry_success(mock_gen_stream):
             message="Hi",
             history=[],
             system_prompt="You are helpful.",
-            temperature=0.7,
+            temperature=0.2,
             max_tokens=128,
-            top_p=0.8,
+            top_p=0.9,
         )
     )
 
@@ -212,9 +274,9 @@ def test_ui_chat_and_telemetry_error(mock_gen_stream):
             message="Trigger crash",
             history=[],
             system_prompt="",
-            temperature=0.7,
+            temperature=0.2,
             max_tokens=128,
-            top_p=0.8,
+            top_p=0.9,
         )
     )
 
@@ -226,3 +288,97 @@ def test_ui_chat_and_telemetry_error(mock_gen_stream):
     assert lat == "—"
     assert tok == "—"
     assert spd == "—"
+
+
+# Concept-based Factuality Regression Suite
+def validate_vllm_concept(response: str) -> bool:
+    """Validate that response describes vLLM without false acronyms."""
+    lower = response.lower()
+    has_hallucination = "vegetable" in lower or "anthropic" in lower
+    has_valid_concept = (
+        "inference" in lower
+        or "serving" in lower
+        or "engine" in lower
+        or "llm" in lower
+    )
+    return has_valid_concept and not has_hallucination
+
+
+def validate_ttft_concept(response: str) -> bool:
+    """Validate that TTFT is identified as Time To First Token."""
+    lower = response.lower()
+    has_hallucination = "tokenization transformer" in lower
+    has_valid_concept = "time to first token" in lower or (
+        "first token" in lower and "latency" in lower
+    )
+    return has_valid_concept and not has_hallucination
+
+
+def validate_lora_concept(response: str) -> bool:
+    """Validate that LoRA is identified as Low-Rank Adaptation."""
+    lower = response.lower()
+    has_hallucination = "long short-term" in lower or "lstm" in lower
+    has_valid_concept = (
+        "low-rank adaptation" in lower
+        or "low rank" in lower
+        or ("peft" in lower and "parameter" in lower)
+    )
+    return has_valid_concept and not has_hallucination
+
+
+def validate_mlflow_concept(response: str) -> bool:
+    """Validate that MLflow is identified as an experiment tracking / lifecycle tool."""
+    lower = response.lower()
+    has_valid_concept = (
+        "tracking" in lower
+        or "experiment" in lower
+        or "lifecycle" in lower
+        or "registry" in lower
+    )
+    return has_valid_concept
+
+
+def validate_training_vs_inference_concept(response: str) -> bool:
+    """Validate distinction between parameter updating (training) and prediction (inference)."""
+    lower = response.lower()
+    has_train = "train" in lower and (
+        "weight" in lower or "parameter" in lower or "loss" in lower or "data" in lower
+    )
+    has_infer = "infer" in lower and (
+        "predict" in lower
+        or "generat" in lower
+        or "output" in lower
+        or "deploy" in lower
+    )
+    return has_train and has_infer
+
+
+def test_factuality_concept_validators():
+    """Test the regression validation functions against sample answers."""
+    # vLLM
+    assert validate_vllm_concept(
+        "vLLM is a high-throughput LLM inference and serving library."
+    )
+    assert not validate_vllm_concept("vLLM stands for Vegetable Large Language Model.")
+
+    # TTFT
+    assert validate_ttft_concept(
+        "TTFT is Time to First Token, measuring the time until the first token is generated."
+    )
+    assert not validate_ttft_concept("TTFT is Tokenization Transformer Fine-Tuning.")
+
+    # LoRA
+    assert validate_lora_concept(
+        "LoRA is Low-Rank Adaptation, a parameter-efficient fine-tuning method."
+    )
+    assert not validate_lora_concept("LoRA is Long Short-Term Memory Regularization.")
+
+    # MLflow
+    assert validate_mlflow_concept(
+        "MLflow is an open source platform to manage the ML lifecycle including experiment tracking."
+    )
+
+    # Training vs Inference
+    assert validate_training_vs_inference_concept(
+        "Training updates model weights on training data, while inference uses the trained model to generate predictions."
+    )

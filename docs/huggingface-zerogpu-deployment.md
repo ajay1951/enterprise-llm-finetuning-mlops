@@ -34,7 +34,7 @@ Public User / Client
 ┌────────────────────────────────────────────────────────────────────────┐
 │                 Hugging Face ZeroGPU Infrastructure                    │
 │    - Dynamic NVIDIA A100/H100/L4 GPU                                   │
-│    - Qwen/Qwen2.5-0.5B-Instruct Model in bfloat16                      │
+│    - Qwen/Qwen2.5-1.5B-Instruct Model in bfloat16                      │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
