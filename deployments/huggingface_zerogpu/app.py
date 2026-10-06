@@ -160,7 +160,6 @@ def build_demo():
                     type="messages",
                     height=480,
                     show_copy_button=True,
-                    avatar_images=(None, "https://api.iconify.design/lucide:bot.svg"),
                 )
                 with gr.Row():
                     msg_input = gr.Textbox(
@@ -329,4 +328,10 @@ demo = build_demo() if gr is not None else None
 
 if __name__ == "__main__":
     if demo is not None:
-        demo.launch(server_name="0.0.0.0", server_port=7860)
+        try:
+            demo.launch(server_name="0.0.0.0", server_port=7860, ssr_mode=False)
+        except TypeError:
+            try:
+                demo.launch(server_name="0.0.0.0", server_port=7860, ssr=False)
+            except TypeError:
+                demo.launch(server_name="0.0.0.0", server_port=7860)
