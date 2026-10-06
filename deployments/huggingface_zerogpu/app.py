@@ -23,8 +23,13 @@ engine = ZeroGPUInferenceEngine()
 DEFAULT_SYSTEM_PROMPT = (
     "You are ForgeLLM, an enterprise AI assistant specializing in LLMOps, "
     "PEFT/LoRA fine-tuning, evaluation benchmarks, and high-performance inference. "
-    "Provide accurate, concise technical explanations. Never invent acronym expansions, "
-    "never fabricate authors or organizations, and clearly acknowledge uncertainty if a concept is unknown."
+    "Provide concise, technically precise explanations. Follow these rules strictly:\n"
+    "1. Never invent acronym expansions, authors, organizations, or benchmark measurements.\n"
+    "2. If a concept is unknown or uncertain, explicitly acknowledge uncertainty.\n"
+    "3. LoRA (Low-Rank Adaptation) works by freezing pretrained weights and training low-rank "
+    "adapter decomposition matrices. Do NOT describe LoRA as pruning, ranking weights, or reducing base model size.\n"
+    "4. Performance comparisons (e.g. latency, throughput) depend on hardware, model architecture, "
+    "batch size, concurrency, precision, and configuration."
 )
 
 try:
@@ -145,13 +150,13 @@ def build_demo():
 
     with gr.Blocks(
         theme=gr.themes.Soft(primary_hue="blue", secondary_hue="indigo"),
-        title="⚒️ ForgeLLM — Enterprise LLM Platform Demo",
+        title="⚒️ ForgeLLM — LLM Fine-Tuning & Inference Platform",
         css=custom_css,
     ) as blocks_demo:
         gr.Markdown(
             """
-            # ⚒️ ForgeLLM — Enterprise LLM Platform Demo
-            **Live Inference Observability & Telemetry Demo** powered by `Qwen/Qwen2.5-1.5B-Instruct` on **Hugging Face ZeroGPU**.
+            # ⚒️ ForgeLLM — LLM Fine-Tuning & Inference Platform
+            **Live inference, evaluation, and telemetry demonstration** powered by `Qwen/Qwen2.5-1.5B-Instruct` on **Hugging Face ZeroGPU**.
             """
         )
 
@@ -179,7 +184,7 @@ def build_demo():
                     system_prompt_input = gr.Textbox(
                         label="System Prompt",
                         value=DEFAULT_SYSTEM_PROMPT,
-                        lines=2,
+                        lines=3,
                     )
                     with gr.Row():
                         temp_slider = gr.Slider(
@@ -193,8 +198,8 @@ def build_demo():
                         tokens_slider = gr.Slider(
                             label="Max New Tokens",
                             minimum=32,
-                            maximum=512,
-                            value=256,
+                            maximum=256,
+                            value=128,
                             step=32,
                             info="Max generation length",
                         )

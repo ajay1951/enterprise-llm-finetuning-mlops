@@ -41,6 +41,9 @@ KNOWN_HALLUCINATIONS: list[tuple[str, ...]] = [
     ("token", "tokenization", "failure"),
     ("tokenization", "transformer", "fine-tuning"),
     ("long", "short-term", "memory", "regularization"),
+    ("lora", "pruning"),
+    ("lora", "ranking", "weights"),
+    ("lora", "reducing", "size", "original", "model"),
 ]
 
 
