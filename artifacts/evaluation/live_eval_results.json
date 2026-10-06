@@ -1,0 +1,293 @@
+{
+  "functional_tests": {
+    "test_a_normal": {
+      "history": [
+        {
+          "role": "user",
+          "metadata": null,
+          "content": "What is machine learning?",
+          "options": null
+        },
+        {
+          "role": "assistant",
+          "metadata": null,
+          "content": "Machine learning is a branch of artificial intelligence that focuses on the development of algorithms and statistical models that enable computers to learn from data without being explicitly programmed. The goal is for machines to improve their performance at tasks automatically through experience rather than explicit instructions.\n\nKey aspects of machine learning include:\n\n1. **Supervised Learning**: Algorithms learn from labeled datasets where input features map to output labels. Common techniques include linear regression, decision trees, support vector machines, neural networks, etc.\n\n2. **Unsupervised Learning**: Models discover patterns in unlabeled data. Techniques like clustering (k-means, hierarchical), dimensionality reduction (PCA, t-S",
+          "options": null
+        }
+      ],
+      "assistant_response": "Machine learning is a branch of artificial intelligence that focuses on the development of algorithms and statistical models that enable computers to learn from data without being explicitly programmed. The goal is for machines to improve their performance at tasks automatically through experience rather than explicit instructions.\n\nKey aspects of machine learning include:\n\n1. **Supervised Learning**: Algorithms learn from labeled datasets where input features map to output labels. Common techniques include linear regression, decision trees, support vector machines, neural networks, etc.\n\n2. **Unsupervised Learning**: Models discover patterns in unlabeled data. Techniques like clustering (k-means, hierarchical), dimensionality reduction (PCA, t-S",
+      "status": "✓ Complete",
+      "ttft": "0.05 s",
+      "latency": "2.88 s",
+      "tokens": "128",
+      "throughput": "44.5 tok/s"
+    },
+    "test_b_empty": {
+      "history": [],
+      "assistant_response": "",
+      "status": "⚠️ Ready",
+      "ttft": "—",
+      "latency": "—",
+      "tokens": "—",
+      "throughput": "—"
+    },
+    "test_c_conversation": {
+      "turn_1": {
+        "history": [
+          {
+            "role": "user",
+            "metadata": null,
+            "content": "What is Python?",
+            "options": null
+          },
+          {
+            "role": "assistant",
+            "metadata": null,
+            "content": "Python is a widely-used high-level programming language known for its simplicity and readability. It was created by Guido van Rossum and first released in 1991. Here are some key points about Python:\n\n1. Syntax: Python has a clean, readable syntax that makes it easy to write code.\n\n2. Versatility: It can be used for web development, scientific computing, data analysis, artificial intelligence, machine learning, automation tasks, and more.\n\n3. Libraries: Python comes with a vast collection of libraries and frameworks that make it easier to perform various tasks. Some popular ones include NumPy for numerical computations, Pandas",
+            "options": null
+          }
+        ],
+        "assistant_response": "Python is a widely-used high-level programming language known for its simplicity and readability. It was created by Guido van Rossum and first released in 1991. Here are some key points about Python:\n\n1. Syntax: Python has a clean, readable syntax that makes it easy to write code.\n\n2. Versatility: It can be used for web development, scientific computing, data analysis, artificial intelligence, machine learning, automation tasks, and more.\n\n3. Libraries: Python comes with a vast collection of libraries and frameworks that make it easier to perform various tasks. Some popular ones include NumPy for numerical computations, Pandas",
+        "status": "✓ Complete",
+        "ttft": "0.05 s",
+        "latency": "2.99 s",
+        "tokens": "128",
+        "throughput": "42.9 tok/s"
+      },
+      "turn_2": {
+        "history": [
+          {
+            "role": "user",
+            "metadata": null,
+            "content": "What is Python?",
+            "options": null
+          },
+          {
+            "role": "assistant",
+            "metadata": null,
+            "content": "Python is a widely-used high-level programming language known for its simplicity and readability. It was created by Guido van Rossum and first released in 1991. Here are some key points about Python:\n\n1. Syntax: Python has a clean, readable syntax that makes it easy to write code.\n\n2. Versatility: It can be used for web development, scientific computing, data analysis, artificial intelligence, machine learning, automation tasks, and more.\n\n3. Libraries: Python comes with a vast collection of libraries and frameworks that make it easier to perform various tasks. Some popular ones include NumPy for numerical computations, Pandas",
+            "options": null
+          },
+          {
+            "role": "user",
+            "metadata": null,
+            "content": "What is it commonly used for?",
+            "options": null
+          },
+          {
+            "role": "assistant",
+            "metadata": null,
+            "content": "Python is commonly used for a wide range of applications due to its versatility and ease of use. Here are some common uses of Python:\n\n1. Web Development: Python frameworks like Django and Flask allow developers to build dynamic websites quickly.\n\n2. Data Analysis and Visualization: Libraries such as pandas, matplotlib, and seaborn help in handling and visualizing large datasets.\n\n3. Machine Learning and Artificial Intelligence: Python's extensive ecosystem supports deep learning frameworks like TensorFlow and PyTorch, making it ideal for building intelligent systems.\n\n4. Automation: Python scripts can automate repetitive tasks across different platforms, from system administration to testing processes.\n\n5. Scientific Computing:",
+            "options": null
+          }
+        ],
+        "assistant_response": "Python is commonly used for a wide range of applications due to its versatility and ease of use. Here are some common uses of Python:\n\n1. Web Development: Python frameworks like Django and Flask allow developers to build dynamic websites quickly.\n\n2. Data Analysis and Visualization: Libraries such as pandas, matplotlib, and seaborn help in handling and visualizing large datasets.\n\n3. Machine Learning and Artificial Intelligence: Python's extensive ecosystem supports deep learning frameworks like TensorFlow and PyTorch, making it ideal for building intelligent systems.\n\n4. Automation: Python scripts can automate repetitive tasks across different platforms, from system administration to testing processes.\n\n5. Scientific Computing:",
+        "status": "✓ Complete",
+        "ttft": "0.06 s",
+        "latency": "2.61 s",
+        "tokens": "128",
+        "throughput": "49.1 tok/s"
+      }
+    }
+  },
+  "factuality_runs": [
+    {
+      "concept": "vLLM",
+      "prompt": "What does vLLM stand for and what is it used for?",
+      "run": 1,
+      "response": "vLLM stands for \"Versatile Large Language Model.\" It refers to a type of large language models that can be configured with various parameters to perform different tasks efficiently. These models are designed to handle diverse applications such as text generation, question answering, translation, and more.\n\nThe versatility of vLLMs allows them to adapt their capabilities based on the specific requirements of each task they are being used for. This makes them highly adaptable and suitable for both research and practical use cases where flexibility is crucial. By adjusting hyperparameters like attention mechanisms, tokenizers, and other components, developers can optimize vLLMs for better performance across different domains without",
+      "ttft": "0.09 s",
+      "latency": "2.97 s",
+      "tokens": "128",
+      "throughput": "43.1 tok/s",
+      "status": "✓ Complete"
+    },
+    {
+      "concept": "vLLM",
+      "prompt": "What does vLLM stand for and what is it used for?",
+      "run": 2,
+      "response": "vLLM stands for \"Versatile Large Language Model.\" It refers to a type of large language model that can be configured with various parameters and settings to perform different tasks effectively. These models are designed to be flexible and adaptable, allowing them to handle diverse inputs and generate outputs suitable for specific applications.\n\nIn the context of natural language processing, vLLMs often include features such as:\n\n- **Fine-Tuning**: Training on specific datasets to improve performance on particular tasks like text classification, question answering, or translation.\n- **Hyperparameter Tuning**: Adjusting hyperparameters like learning rate, batch size, and number of layers to optimize model",
+      "ttft": "0.10 s",
+      "latency": "2.76 s",
+      "tokens": "128",
+      "throughput": "46.4 tok/s",
+      "status": "✓ Complete"
+    },
+    {
+      "concept": "vLLM",
+      "prompt": "What does vLLM stand for and what is it used for?",
+      "run": 3,
+      "response": "vLLM stands for \"Very Large Language Model.\" It refers to large-scale language models that have been trained using massive amounts of data. These models can process vast quantities of text and generate human-like responses.\n\nvLLMs are widely used in various applications such as:\n\n- **Natural Language Processing (NLP)**: For tasks like translation, summarization, question answering, and text generation.\n- **Language Understanding**: To interpret natural language inputs from users or systems.\n- **Information Retrieval**: To find relevant information within large datasets.\n- **Text Generation**: Creating new content based on given prompts or contexts.\n\nThese models often require significant",
+      "ttft": "0.11 s",
+      "latency": "2.80 s",
+      "tokens": "128",
+      "throughput": "45.7 tok/s",
+      "status": "✓ Complete"
+    },
+    {
+      "concept": "TTFT",
+      "prompt": "What does TTFT mean in LLM inference?",
+      "run": 1,
+      "response": "TTFT stands for \"Throughput Time to First Token,\" which refers to the time it takes for a language model to generate its first token of output after being prompted with input text. This metric is often used to evaluate the performance of large language models during inference, particularly when dealing with real-time applications or scenarios where quick responses are crucial.",
+      "ttft": "0.07 s",
+      "latency": "1.44 s",
+      "tokens": "68",
+      "throughput": "47.4 tok/s",
+      "status": "✓ Complete"
+    },
+    {
+      "concept": "TTFT",
+      "prompt": "What does TTFT mean in LLM inference?",
+      "run": 2,
+      "response": "TTFT stands for \"Throughput Time to First Token.\" It refers to the time it takes for a language model to produce its first token of output after being prompted with input text. This metric is commonly used in evaluating the performance of large language models during inference, particularly when measuring how quickly they can generate responses to user queries.",
+      "ttft": "0.09 s",
+      "latency": "1.54 s",
+      "tokens": "66",
+      "throughput": "42.9 tok/s",
+      "status": "✓ Complete"
+    },
+    {
+      "concept": "TTFT",
+      "prompt": "What does TTFT mean in LLM inference?",
+      "run": 3,
+      "response": "TTFT stands for \"Time to First Token\" in the context of language modeling inference. It refers to the time it takes for a language model to generate its first token after receiving input. This metric is often used to evaluate the performance of different models or variations of a model when they are being tested under similar conditions. A shorter TTFT typically indicates faster response times and better efficiency in generating text.",
+      "ttft": "0.07 s",
+      "latency": "1.72 s",
+      "tokens": "80",
+      "throughput": "46.6 tok/s",
+      "status": "✓ Complete"
+    },
+    {
+      "concept": "LoRA",
+      "prompt": "What is LoRA and how does LoRA fine-tuning work?",
+      "run": 1,
+      "response": "LoRA stands for Low-Rank Adaptation. It's a technique used to improve the performance of large pre-trained models without requiring significant additional computational resources. The core idea behind LoRA is to reduce the complexity of the model while still retaining its ability to perform well on downstream tasks.\n\n### How LoRA Works:\n\n1. **Model Decomposition**: In LoRA, the original pre-trained model is decomposed into two parts: a \"base\" model that contains the majority of the parameters and a set of \"adapter\" layers that contain only a small number of trainable parameters.\n\n2. **Freezing Base Model**: During training, the",
+      "ttft": "0.06 s",
+      "latency": "2.56 s",
+      "tokens": "128",
+      "throughput": "50.0 tok/s",
+      "status": "✓ Complete"
+    },
+    {
+      "concept": "LoRA",
+      "prompt": "What is LoRA and how does LoRA fine-tuning work?",
+      "run": 2,
+      "response": "LoRA stands for Low-Rank Adaptation. It's a technique used to improve the performance of large pre-trained models without requiring additional computational resources. The idea behind LoRA is to reduce the memory footprint of the model while still allowing it to perform well.\n\n### How LoRA Works:\n\n1. **Model Architecture**: A large pre-trained model like BERT, GPT-3, or any other transformer-based model is used as the base model. This model has many parameters that need to be trained from scratch during fine-tuning.\n\n2. **Adapter Layer**: Instead of retraining all the parameters of the base model, which can",
+      "ttft": "0.07 s",
+      "latency": "2.51 s",
+      "tokens": "128",
+      "throughput": "51.1 tok/s",
+      "status": "✓ Complete"
+    },
+    {
+      "concept": "LoRA",
+      "prompt": "What is LoRA and how does LoRA fine-tuning work?",
+      "run": 3,
+      "response": "LoRA stands for Low-Rank Adaptation. It's a technique used to improve the performance of large pre-trained models without requiring significant additional computational resources. The idea behind LoRA is to reduce the complexity of the model while maintaining its accuracy.\n\n### How LoRA Works:\n\n1. **Pre-training**: The model is first trained on a large dataset using standard techniques like gradient descent with backpropagation. This step ensures that the model learns general features from the data.\n\n2. **Decomposition**: After pre-training, the model's parameters are decomposed into two parts: a low-rank matrix \\( A \\) and a dense",
+      "ttft": "1.19 s",
+      "latency": "3.48 s",
+      "tokens": "128",
+      "throughput": "36.7 tok/s",
+      "status": "✓ Complete"
+    },
+    {
+      "concept": "MLflow",
+      "prompt": "What is MLflow used for?",
+      "run": 1,
+      "response": "MLflow is a platform that helps data scientists and machine learning engineers manage the entire lifecycle of their machine learning projects. It provides tools to:\n\n- Track experiments: Record details about each experiment, including parameters, metrics, and runs.\n- Store models: Save trained models so they can be reused later.\n- Manage dependencies: Keep track of all the libraries and dependencies needed for a project.\n- Version control: Allow multiple versions of code and configurations to be tracked.\n\nMLflow also includes features like automatic hyperparameter tuning using Bayesian optimization, support for various programming languages, and integration with popular cloud services. This makes it easier to collaborate on projects,",
+      "ttft": "0.07 s",
+      "latency": "2.40 s",
+      "tokens": "128",
+      "throughput": "53.3 tok/s",
+      "status": "✓ Complete"
+    },
+    {
+      "concept": "MLflow",
+      "prompt": "What is MLflow used for?",
+      "run": 2,
+      "response": "MLflow is a platform that helps data scientists and machine learning engineers manage the entire lifecycle of their machine learning projects. It provides tools to:\n\n1. **Track Model Versions**: MLflow allows you to track different versions of your models over time, including when they were created, who updated them, and why.\n\n2. **Version Control**: You can keep track of changes made to your codebase, parameters, hyperparameters, and other configurations throughout the development process.\n\n3. **Logging Data**: MLflow supports logging various types of data such as metrics, logs, and artifacts like trained models, datasets, and scripts. This makes it easy",
+      "ttft": "0.07 s",
+      "latency": "2.41 s",
+      "tokens": "128",
+      "throughput": "53.2 tok/s",
+      "status": "✓ Complete"
+    },
+    {
+      "concept": "MLflow",
+      "prompt": "What is MLflow used for?",
+      "run": 3,
+      "response": "MLflow is primarily used for managing machine learning projects throughout their lifecycle. It provides tools to track the entire process of building, deploying, and monitoring machine learning models. Here's how it can be utilized:\n\n1. **Model Registry**: MLflow allows you to manage different versions of your models, ensuring that they are easily accessible and up-to-date.\n\n2. **Artifact Management**: It helps in storing artifacts such as data files, logs, and intermediate results generated during the training process. This makes it easier to reproduce experiments and share them with others.\n\n3. **Experiment Tracking**: MLflow tracks all aspects of the experiment, including parameters,",
+      "ttft": "0.06 s",
+      "latency": "2.33 s",
+      "tokens": "128",
+      "throughput": "54.9 tok/s",
+      "status": "✓ Complete"
+    },
+    {
+      "concept": "Training vs inference",
+      "prompt": "What is the difference between model training and inference?",
+      "run": 1,
+      "response": "Model training involves adjusting the parameters of a machine learning model to minimize a loss function during the process of learning from labeled data. This typically includes steps like forward propagation through the network, computing gradients based on the error, updating the model's parameters using optimization algorithms such as gradient descent, and repeating this cycle until convergence.\n\nInference, on the other hand, refers to the process of applying the trained model to new, unseen data for prediction or decision-making purposes. During inference, the model uses its learned parameters to make predictions without retraining them; it simply applies the previously computed weights to the input data.\n\nThe key differences lie in their purpose",
+      "ttft": "0.04 s",
+      "latency": "2.40 s",
+      "tokens": "128",
+      "throughput": "53.3 tok/s",
+      "status": "✓ Complete"
+    },
+    {
+      "concept": "Training vs inference",
+      "prompt": "What is the difference between model training and inference?",
+      "run": 2,
+      "response": "Model training involves adjusting parameters of a machine learning model to minimize error on a given dataset. This process typically includes steps such as data preprocessing, defining loss functions, optimizing hyperparameters, and iterating through epochs until convergence.\n\nInference, on the other hand, refers to using a trained model to make predictions or decisions based on new, unseen data. During inference, the model's learned patterns are applied directly without further adjustments. The goal is to deploy the model efficiently for real-time applications or large-scale deployment where computational resources might be limited.",
+      "ttft": "0.04 s",
+      "latency": "2.08 s",
+      "tokens": "107",
+      "throughput": "51.4 tok/s",
+      "status": "✓ Complete"
+    },
+    {
+      "concept": "Training vs inference",
+      "prompt": "What is the difference between model training and inference?",
+      "run": 3,
+      "response": "Model training involves adjusting the parameters of a machine learning model to minimize error on a given dataset. This process typically includes steps such as data preprocessing, defining loss functions, selecting optimization algorithms, setting hyperparameters, and iterating through epochs until convergence.\n\nInference, on the other hand, refers to using the trained model to make predictions or decisions with new, unseen data. During this phase, the model takes input features and applies its learned patterns to generate output without further adjustments based on the current dataset.\n\nThe key differences lie in their purpose: training aims to improve performance on future data, while inference uses the model's learned knowledge to provide immediate results",
+      "ttft": "0.04 s",
+      "latency": "2.75 s",
+      "tokens": "128",
+      "throughput": "46.5 tok/s",
+      "status": "✓ Complete"
+    },
+    {
+      "concept": "vLLM vs Transformers",
+      "prompt": "How does vLLM differ from Hugging Face Transformers for inference serving?",
+      "run": 1,
+      "response": "vLLM and Hugging Face Transformers both serve as powerful tools for natural language processing tasks, but they have distinct differences that affect their performance and suitability for different use cases.\n\n### 1. **Architecture and Design:**\n- **Hugging Face Transformers:** These models are typically pre-trained on large datasets like those used in the GLUE benchmark suite. They often include advanced architectures such as BERT, GPT, and other transformer-based models designed to handle complex NLP tasks effectively.\n  \n- **vLLM:** vLLM stands for \"Very Large Language Model\" and refers to very large-scale transformers trained specifically for specific applications",
+      "ttft": "0.09 s",
+      "latency": "2.38 s",
+      "tokens": "128",
+      "throughput": "53.9 tok/s",
+      "status": "✓ Complete"
+    },
+    {
+      "concept": "vLLM vs Transformers",
+      "prompt": "How does vLLM differ from Hugging Face Transformers for inference serving?",
+      "run": 2,
+      "response": "vLLM differs from Hugging Face Transformers primarily in terms of deployment and performance optimization for inference servers.\n\nHugging Face Transformers are pre-trained models that can be used directly without further tuning or adaptation to specific use cases. They offer flexibility but may not be optimized for production environments due to the need for additional steps such as fine-tuning, hyperparameter tuning, and model compression techniques like quantization.\n\nOn the other hand, vLLM is designed specifically for efficient inference serving. It includes optimizations tailored for large-scale deployments, such as:\n\n- **Quantization**: Reduces the model's memory footprint and computational requirements through various quantization techniques",
+      "ttft": "0.09 s",
+      "latency": "2.38 s",
+      "tokens": "128",
+      "throughput": "53.9 tok/s",
+      "status": "✓ Complete"
+    },
+    {
+      "concept": "vLLM vs Transformers",
+      "prompt": "How does vLLM differ from Hugging Face Transformers for inference serving?",
+      "run": 3,
+      "response": "vLLM and Hugging Face Transformers both serve as powerful tools for natural language processing tasks, but they have distinct differences that affect their performance and use cases.\n\n**Hugging Face Transformers:**\n- **Architecture**: Hugging Face Transformers are based on the PyTorch framework, which allows for flexibility in customizing models with additional layers or modifications to existing architectures.\n- **Flexibility**: They offer extensive customization options through transformers like BERT, GPT, and others, allowing users to tailor models specifically for their needs without having to retrain them from scratch.\n- **Community Support**: The community around Hugging Face Transformers is very active",
+      "ttft": "0.09 s",
+      "latency": "2.90 s",
+      "tokens": "128",
+      "throughput": "44.2 tok/s",
+      "status": "✓ Complete"
+    }
+  ]
+}

@@ -1,143 +1,91 @@
-# ForgeLLM Hugging Face ZeroGPU Deployment Guide
+# ForgeLLM: Hugging Face ZeroGPU Production Deployment & Demo Guide
 
-This guide describes how to deploy and synchronize the live public demonstration of **ForgeLLM** to **Hugging Face Spaces** utilizing free **ZeroGPU** dynamic allocation.
+**Document Version:** `1.0.0`  
+**Public Space URL:** [https://huggingface.co/spaces/ajay1951/forgellm-demo](https://huggingface.co/spaces/ajay1951/forgellm-demo)  
+**Production Model:** `Qwen/Qwen2.5-1.5B-Instruct` (1.54B parameters, `bfloat16`, ~3.1 GB safetensors)  
+**Inference Stack:** Hugging Face ZeroGPU (`zero-a10g`), PyTorch 2.5+, Transformers, Gradio 5.x  
 
 ---
 
 ## 1. Overview & Architecture
 
-ForgeLLM provides a lightweight, self-contained Gradio 5.x application in `deployments/huggingface_zerogpu/` that interfaces directly with Hugging Face ZeroGPU infrastructure.
+ForgeLLM provides a lightweight, self-contained serverless inference demonstration in `deployments/huggingface_zerogpu/` running directly on Hugging Face ZeroGPU infrastructure.
 
-```text
-Public User / Client
-        │
-        ▼ (Web / REST API)
-┌────────────────────────────────────────────────────────────────────────┐
-│     Gradio 5.x Interface (deployments/huggingface_zerogpu)             │
-│  ┌───────────────────────────────┬──────────────────────────────────┐  │
-│  │   Chatbot & Prompt Controls   │    Live Inference Telemetry      │  │
-│  │   - Multi-turn conversation   │    - TTFT (s) & Latency (s)      │  │
-│  │   - Sampling parameters       │    - Output Tokens & tok/s       │  │
-│  └───────────────────────────────┴──────────────────────────────────┘  │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │
-                                    ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                      ZeroGPUInferenceEngine                            │
-│    - @spaces.GPU transient leasing                                     │
-│    - ChatML prompt template builder                                    │
-│    - TextIteratorStreamer token generation                             │
-│    - Dynamic latency, TTFT, and throughput computation                 │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │
-                                    ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                 Hugging Face ZeroGPU Infrastructure                    │
-│    - Dynamic NVIDIA A100/H100/L4 GPU                                   │
-│    - Qwen/Qwen2.5-1.5B-Instruct Model in bfloat16                      │
-└────────────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    Client["User / API Client"] --> UI["Gradio 5.x Interface (Port 7860)"]
+    
+    subgraph Space_Container ["ZeroGPU Container Context"]
+        UI --> Engine["ZeroGPUInferenceEngine (adapter.py)"]
+        Engine --> Guard["Targeted Factuality Guardrail"]
+        Guard --> Lease["@spaces.GPU(duration=60) Boundary"]
+        Lease --> LazyLoad["Lazy Model Lifecycle (bfloat16)"]
+        LazyLoad --> Streamer["TextIteratorStreamer Generator"]
+    end
+    
+    subgraph ZeroGPU_Hardware ["Hugging Face Cloud Infrastructure"]
+        Lease --> A10G["Dynamic NVIDIA A10G Slice ('zero-a10g')"]
+    end
+    
+    Streamer --> Telemetry["Real-Time Ground-Truth Telemetry (TTFT, Latency, tok/s)"]
+    Telemetry --> UI
 ```
 
 ---
 
-## 2. Prerequisites
+## 2. Technical Capabilities & Highlights
 
-1. A free account on [Hugging Face](https://huggingface.co).
-2. A Hugging Face User Access Token (with `write` permission).
-3. Git configured locally.
+### 2.1 Lazy Weight Lifecycle
+To eliminate out-of-memory crashes on shared CPU entry nodes, model weights (~3.1 GB) are deferred and loaded only after entering the GPU context boundary (`@spaces.GPU`). In non-CUDA environments, the engine gracefully falls back to CPU float32 execution.
 
----
+### 2.2 Live Inference Telemetry
+The interface provides real-time observability updated during token streaming:
+- **Time to First Token (TTFT):** Measures elapsed time from prompt dispatch until the initial token is decoded.
+- **Total Latency:** End-to-end execution time in seconds.
+- **True Token Counts:** Counts exact tokens via `tokenizer.encode()` rather than character/word heuristic approximations.
+- **End-to-End Throughput:** Computes actual generation throughput in tokens per second ($\text{tok/s}$).
 
-## 3. Creating the Hugging Face Space
-
-1. Navigate to [Hugging Face Spaces New](https://huggingface.co/new-space).
-2. Set Space Name: `forgellm-demo` (or desired name).
-3. Select License: `Apache 2.0` (or `MIT`).
-4. Select Space SDK: **Gradio**.
-5. Select Space Hardware: **ZeroGPU (Free)**.
-6. Click **Create Space**.
+### 2.3 Factuality Guardrails
+Includes targeted post-generation validation on core LLMOps concepts (e.g. ensuring LoRA is correctly described as low-rank decomposition rather than pruning, and eliminating false acronym confabulations). If triggered, verified technical advisories are cleanly appended without overwriting raw model telemetry.
 
 ---
 
-## 4. Deploying via Git Subtree Push
+## 3. Verified Live Evaluation Results
 
-To deploy the self-contained `deployments/huggingface_zerogpu/` directory directly to your Hugging Face Space repository:
+Across an 18-run live evaluation matrix on the public Space (`zero-a10g`):
+
+- **Technically Acceptable Responses:** `18 / 18` (100.0%)
+- **Fully Correct Responses:** `13 / 18` (72.2%)
+- **Partially Correct Responses:** `5 / 18` (27.8%)
+- **Incorrect Responses:** `0 / 18` (0.0%)
+- **Hallucinated Responses:** `0 / 18` (0.0%)
+- **Average TTFT:** `0.136 s`
+- **Average Total Latency:** `2.43 s`
+- **Average Output Tokens:** `117.4 tokens`
+- **Average Throughput:** `48.6 tok/s`
+
+Full evaluation logs and per-prompt breakdowns: [docs/live-evaluation-report.md](live-evaluation-report.md).
+
+---
+
+## 4. Deployment via Git Subtree Split
+
+Deploy the isolated ZeroGPU application directly to the Hugging Face Space repository:
 
 ```bash
-# Add Hugging Face Space remote
-git remote add hf-space https://huggingface.co/spaces/<YOUR_HF_USERNAME>/forgellm-demo
+# 1. Run local validation suite
+pytest tests/test_zerogpu_adapter.py -v
+ruff format --check deployments/huggingface_zerogpu/
+ruff check deployments/huggingface_zerogpu/
 
-# Push the isolated ZeroGPU directory as the root of the Space
-git subtree push --prefix deployments/huggingface_zerogpu hf-space main
-```
-
-*(If force pushing or updating an existing space):*
-```bash
-git push hf-space `git subtree split --prefix deployments/huggingface_zerogpu main`:main --force
-```
-
----
-
-## 5. Automated CI/CD Sync (Optional GitHub Action)
-
-To keep your Hugging Face Space automatically in sync with the `main` branch of this repository, create `.github/workflows/sync_hf_space.yml`:
-
-```yaml
-name: Sync to Hugging Face Space
-
-on:
-  push:
-    branches: [main]
-    paths:
-      - 'deployments/huggingface_zerogpu/**'
-
-jobs:
-  sync:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Push to Hugging Face
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: |
-          git remote add hf https://${{ secrets.HF_USERNAME }}:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/${{ secrets.HF_USERNAME }}/forgellm-demo
-          git subtree push --prefix deployments/huggingface_zerogpu hf main
+# 2. Split and force push to Space remote
+$split = git subtree split --prefix deployments/huggingface_zerogpu main
+git push hf-space ${split}:main --force
 ```
 
 ---
 
-## 6. Programmatic Consumption via Python Client
+## 5. Cold Starts & Infrastructure Considerations
 
-Clients can consume the public ZeroGPU demo programmatically using `gradio_client`:
-
-```python
-from gradio_client import Client
-
-client = Client("<YOUR_HF_USERNAME>/forgellm-demo")
-result = client.predict(
-    message="Explain how LoRA fine-tuning works in ForgeLLM.",
-    system_prompt="You are a helpful AI assistant.",
-    temperature=0.7,
-    max_tokens=256,
-    top_p=0.9,
-    api_name="/chat_response"
-)
-print(result)
-```
-
----
-
-## 7. Local Testing & Validation
-
-You can run the ZeroGPU demo locally on your workstation prior to pushing:
-
-```bash
-# Activate virtual environment
-.\venv\Scripts\Activate.ps1
-
-# Run the Gradio app locally
-python deployments/huggingface_zerogpu/app.py
-```
-Open `http://localhost:7860` in your browser.
+- **Shared Queueing:** ZeroGPU leases GPU slices dynamically. First-token latency (TTFT) may occasionally exhibit a 1–3 second cold-start delay during initial lease acquisition.
+- **Performance Comparability:** ZeroGPU throughput (~48 tok/s) reflects shared cloud infrastructure and streaming overhead, and should be evaluated in context alongside dedicated workstation benchmarks (RTX 2050 4GB).
